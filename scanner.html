@@ -209,7 +209,7 @@
   const GATE_PIN = '142026';
   // ═══════════════════════════════════════════════════════════
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let html5QrCode = null;
   let scanCooldown = false;
 
@@ -243,8 +243,8 @@
 
   async function loadStats() {
     try {
-      const { count: total } = await supabase.from('registrations').select('*', { count: 'exact', head: true });
-      const { count: checked } = await supabase.from('registrations').select('*', { count: 'exact', head: true }).eq('checked_in', true);
+      const { count: total } = await db.from('registrations').select('*', { count: 'exact', head: true });
+      const { count: checked } = await db.from('registrations').select('*', { count: 'exact', head: true }).eq('checked_in', true);
       document.getElementById('totalCount').textContent = total ?? '—';
       document.getElementById('checkedCount').textContent = checked ?? '—';
     } catch (e) { console.error(e); }
@@ -280,7 +280,7 @@
     resultArea.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gold);font-family:JetBrains Mono,monospace;font-size:0.75rem;letter-spacing:0.2em;">VERIFYING…</div>';
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('registrations')
         .select('*')
         .eq('ticket_number', ticketNumber)
@@ -305,7 +305,7 @@
       }
 
       // Mark as checked in
-      const { error: updateErr } = await supabase
+      const { error: updateErr } = await db
         .from('registrations')
         .update({ checked_in: true, checked_in_at: new Date().toISOString() })
         .eq('id', data.id);
