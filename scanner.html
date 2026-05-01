@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LEAMS · Gate Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #111;
+    --bg-card: #161616;
+    --gold: #d4af37;
+    --gold-bright: #f4d77b;
+    --text: #f5f1e8;
+    --text-dim: #9a9489;
+    --text-mute: #5c574e;
+    --border: rgba(212, 175, 55, 0.18);
+    --border-strong: rgba(212, 175, 55, 0.4);
+    --error: #ff6b6b;
+    --success: #5fd991;
+    --warn: #ffb347;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height: 100vh;
+    background-image: radial-gradient(ellipse at top, rgba(212,175,55,0.05), transparent 60%);
+  }
+
+  .header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(10,10,10,0.7); backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.15em; }
+  .logo .sub { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-mute); letter-spacing: 0.3em; text-transform: uppercase; margin-top: 0.2rem; }
+  .stats { display: flex; gap: 2rem; }
+  .stat { text-align: right; }
+  .stat .l { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; }
+  .stat .v { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; color: var(--gold); margin-top: 0.2rem; line-height: 1; }
+
+  .main { max-width: 600px; margin: 0 auto; padding: 2rem; }
+
+  .login-card, .scanner-card, .result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .login-card::before, .login-card::after,
+  .scanner-card::before, .scanner-card::after {
+    content: ''; position: absolute; width: 20px; height: 20px; border: 1px solid var(--gold);
+  }
+  .login-card::before, .scanner-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .login-card::after, .scanner-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 1rem; }
+  h2 .it { font-style: italic; color: var(--gold); }
+  .desc { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; font-weight: 300; }
+
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .field input {
+    width: 100%; padding: 0.9rem 1rem; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95rem;
+  }
+  .field input:focus { outline: none; border-color: var(--gold); }
+
+  .btn {
+    padding: 0.9rem 2rem; border: none; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.25em; text-transform: uppercase; font-weight: 500;
+    transition: all 0.3s; width: 100%;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color: var(--bg); }
+  .btn-primary:hover { box-shadow: 0 10px 30px -10px rgba(212,175,55,0.5); }
+  .btn-secondary { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-secondary:hover { background: var(--gold); color: var(--bg); }
+  .btn-row { display: flex; gap: 1rem; }
+  .btn-row .btn { width: auto; flex: 1; }
+
+  #reader { width: 100%; min-height: 300px; border: 1px dashed var(--border-strong); background: var(--bg); position: relative; overflow: hidden; }
+  #reader video { width: 100% !important; }
+
+  .scanner-status {
+    text-align: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em;
+    margin-top: 1rem; text-transform: uppercase;
+  }
+
+  .manual-entry { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border); }
+
+  /* Result states */
+  .result-card { border-width: 2px; }
+  .result-card.success { border-color: var(--success); background: rgba(95, 217, 145, 0.05); }
+  .result-card.warn { border-color: var(--warn); background: rgba(255, 179, 71, 0.05); }
+  .result-card.error { border-color: var(--error); background: rgba(255, 107, 107, 0.05); }
+
+  .result-icon {
+    width: 70px; height: 70px; border-radius: 50%; border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem; font-size: 2.2rem;
+  }
+  .success .result-icon { border-color: var(--success); color: var(--success); box-shadow: 0 0 30px rgba(95,217,145,0.4); }
+  .warn .result-icon { border-color: var(--warn); color: var(--warn); }
+  .error .result-icon { border-color: var(--error); color: var(--error); }
+
+  .result-title { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; text-align: center; margin-bottom: 0.5rem; }
+  .success .result-title { color: var(--success); }
+  .warn .result-title { color: var(--warn); }
+  .error .result-title { color: var(--error); }
+  .result-msg { text-align: center; color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  .attendee-info {
+    border-top: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
+    padding: 1.5rem 0; margin: 1.5rem 0;
+    display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center;
+  }
+  .attendee-photo {
+    width: 90px; height: 90px; border: 1px solid var(--gold);
+    background: var(--bg-soft); overflow: hidden;
+  }
+  .attendee-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .attendee-details .row { margin-bottom: 0.7rem; }
+  .attendee-details .row:last-child { margin-bottom: 0; }
+  .attendee-details .l { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.2rem; }
+  .attendee-details .v { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; color: var(--gold); }
+  .attendee-details .v.small { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text); }
+
+  .err-banner {
+    background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3);
+    color: var(--error); padding: 0.8rem 1rem; margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .header { padding: 1rem; flex-direction: column; gap: 1rem; align-items: flex-start; }
+    .stats { gap: 1.5rem; }
+    .main { padding: 1rem; }
+    .attendee-info { grid-template-columns: 1fr; text-align: center; }
+    .attendee-photo { margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    LEAMS
+    <div class="sub">Gate Scanner · 14 May 2026</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="l">Checked In</div><div class="v" id="checkedCount">—</div></div>
+    <div class="stat"><div class="l">Total Reg.</div><div class="v" id="totalCount">—</div></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Login -->
+  <div class="login-card" id="loginCard">
+    <h2>Gate <span class="it">login.</span></h2>
+    <p class="desc">Enter the gate access PIN provided by the organiser.</p>
+    <div id="loginErr"></div>
+    <div class="field">
+      <label>Access PIN</label>
+      <input type="password" id="pinInput" placeholder="••••••" autofocus>
+    </div>
+    <button class="btn btn-primary" onclick="checkLogin()">Unlock Scanner</button>
+  </div>
+
+  <!-- Scanner -->
+  <div class="scanner-card" id="scannerCard" style="display:none;">
+    <h2>Scan <span class="it">ticket QR.</span></h2>
+    <p class="desc">Point the camera at the attendee's QR code on their ticket.</p>
+    <div id="reader"></div>
+    <div class="scanner-status" id="scanStatus">Initialising camera...</div>
+
+    <div class="manual-entry">
+      <div class="field">
+        <label>Or enter ticket number manually</label>
+        <input type="text" id="manualTicket" placeholder="LFM-2026-000001">
+      </div>
+      <button class="btn btn-secondary" onclick="checkManual()">Verify Ticket</button>
+    </div>
+  </div>
+
+  <!-- Result (rendered dynamically) -->
+  <div id="resultArea"></div>
+
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // 🔐 SUPABASE CONFIG — must match index.html
+  // ═══════════════════════════════════════════════════════════
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+  // 🔐 Gate access PIN — change this to whatever you want
+  // (this is just basic gatekeeping, not high-security; the PIN lives in the file)
+  const GATE_PIN = '142026';
+  // ═══════════════════════════════════════════════════════════
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let html5QrCode = null;
+  let scanCooldown = false;
+
+  function checkLogin() {
+    const pin = document.getElementById('pinInput').value;
+    if (pin === GATE_PIN) {
+      sessionStorage.setItem('gateAuth', '1');
+      showScanner();
+    } else {
+      document.getElementById('loginErr').innerHTML = '<div class="err-banner">Incorrect PIN. Try again.</div>';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  document.getElementById('pinInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkLogin();
+  });
+
+  // Auto-login if already authed this session
+  if (sessionStorage.getItem('gateAuth') === '1') {
+    showScanner();
+  }
+
+  function showScanner() {
+    document.getElementById('loginCard').style.display = 'none';
+    document.getElementById('scannerCard').style.display = 'block';
+    loadStats();
+    setInterval(loadStats, 30000); // refresh stats every 30s
+    startScanner();
+  }
+
+  async function loadStats() {
+    try {
+      const { count: total } = await supabase.from('registrations').select('*', { count: 'exact', head: true });
+      const { count: checked } = await supabase.from('registrations').select('*', { count: 'exact', head: true }).eq('checked_in', true);
+      document.getElementById('totalCount').textContent = total ?? '—';
+      document.getElementById('checkedCount').textContent = checked ?? '—';
+    } catch (e) { console.error(e); }
+  }
+
+  async function startScanner() {
+    try {
+      html5QrCode = new Html5Qrcode('reader');
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      await html5QrCode.start({ facingMode: 'environment' }, config, onScan, () => {});
+      document.getElementById('scanStatus').textContent = '● SCANNING — POINT AT QR CODE';
+    } catch (err) {
+      console.error(err);
+      document.getElementById('scanStatus').textContent = '⚠ CAMERA UNAVAILABLE — USE MANUAL ENTRY';
+    }
+  }
+
+  async function onScan(decodedText) {
+    if (scanCooldown) return;
+    scanCooldown = true;
+    setTimeout(() => { scanCooldown = false; }, 3000);
+    await verifyTicket(decodedText);
+  }
+
+  function checkManual() {
+    const t = document.getElementById('manualTicket').value.trim().toUpperCase();
+    if (!t) return;
+    verifyTicket(t);
+  }
+
+  async function verifyTicket(ticketNumber) {
+    const resultArea = document.getElementById('resultArea');
+    resultArea.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gold);font-family:JetBrains Mono,monospace;font-size:0.75rem;letter-spacing:0.2em;">VERIFYING…</div>';
+
+    try {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('ticket_number', ticketNumber)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        renderResult({ status: 'error', title: 'Invalid Ticket', message: `No registration found for ${ticketNumber}.` });
+        return;
+      }
+
+      if (data.checked_in) {
+        renderResult({
+          status: 'warn',
+          title: 'Already Checked In',
+          message: `This ticket was scanned earlier at ${new Date(data.checked_in_at).toLocaleString()}.`,
+          attendee: data
+        });
+        beep('warn');
+        return;
+      }
+
+      // Mark as checked in
+      const { error: updateErr } = await supabase
+        .from('registrations')
+        .update({ checked_in: true, checked_in_at: new Date().toISOString() })
+        .eq('id', data.id);
+
+      if (updateErr) throw updateErr;
+
+      renderResult({
+        status: 'success',
+        title: 'Welcome ✓',
+        message: 'Verify face matches photo, then admit.',
+        attendee: data
+      });
+      beep('ok');
+      loadStats();
+
+    } catch (err) {
+      console.error(err);
+      renderResult({ status: 'error', title: 'Error', message: err.message || 'Could not verify ticket.' });
+    }
+  }
+
+  function renderResult({ status, title, message, attendee }) {
+    const resultArea = document.getElementById('resultArea');
+    const icon = status === 'success' ? '✓' : status === 'warn' ? '!' : '✕';
+
+    const maskedId = attendee && attendee.id_number
+      ? (attendee.id_number.length > 4
+          ? '•'.repeat(attendee.id_number.length - 4) + attendee.id_number.slice(-4)
+          : attendee.id_number)
+      : '—';
+
+    const attendeeBlock = attendee ? `
+      <div class="attendee-info">
+        <div class="attendee-photo">
+          <img src="${attendee.photo_url}" alt="">
+        </div>
+        <div class="attendee-details">
+          <div class="row"><div class="l">Name</div><div class="v">${escapeHtml(attendee.full_name)}</div></div>
+          <div class="row"><div class="l">Ticket №</div><div class="v small">${attendee.ticket_number}</div></div>
+          <div class="row"><div class="l">${escapeHtml(attendee.id_type)}</div><div class="v small">${maskedId}</div></div>
+        </div>
+      </div>
+    ` : '';
+
+    resultArea.innerHTML = `
+      <div class="result-card ${status}">
+        <div class="result-icon">${icon}</div>
+        <div class="result-title">${title}</div>
+        <div class="result-msg">${message}</div>
+        ${attendeeBlock}
+        <button class="btn btn-secondary" onclick="clearResult()">Scan Next →</button>
+      </div>
+    `;
+    resultArea.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function clearResult() {
+    document.getElementById('resultArea').innerHTML = '';
+    document.getElementById('manualTicket').value = '';
+  }
+
+  function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  function beep(type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = type === 'ok' ? 880 : 440;
+      g.gain.value = 0.15;
+      o.start(); o.stop(ctx.currentTime + 0.15);
+    } catch (e) {}
+  }
+</script>
+
+</body>
+</html>

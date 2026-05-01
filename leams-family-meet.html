@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LEAMS Family Meet 2026 — Reserve Your Pass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #111111;
+    --bg-card: #161616;
+    --gold: #d4af37;
+    --gold-bright: #f4d77b;
+    --gold-deep: #8a6d1f;
+    --gold-glow: rgba(212, 175, 55, 0.35);
+    --text: #f5f1e8;
+    --text-dim: #9a9489;
+    --text-mute: #5c574e;
+    --border: rgba(212, 175, 55, 0.18);
+    --border-strong: rgba(212, 175, 55, 0.4);
+    --error: #ff6b6b;
+    --success: #5fd991;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  body { position: relative; min-height: 100vh; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(212, 175, 55, 0.06), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 0% 80%, rgba(212, 175, 55, 0.04), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: overlay;
+  }
+
+  .grain { position: relative; z-index: 1; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 1.5rem 3rem;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 10, 0.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    border: 1px solid var(--gold);
+    transform: rotate(45deg);
+    position: relative;
+  }
+  .logo-mark::before {
+    content: '';
+    position: absolute; inset: 4px;
+    border: 1px solid var(--gold);
+    background: radial-gradient(circle, var(--gold-glow), transparent);
+  }
+  .nav-links { display: flex; gap: 2.5rem; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-weight: 300; }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 0.3s; }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    padding: 0.6rem 1.4rem;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg); box-shadow: 0 0 30px var(--gold-glow); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 4rem;
+    padding: 9rem 3rem 4rem;
+    align-items: center;
+    position: relative;
+  }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 1rem;
+    opacity: 0; animation: fadeUp 1s 0.2s forwards;
+  }
+  .hero-tag::before { content: ''; width: 40px; height: 1px; background: var(--gold); }
+
+  h1.hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 6.5vw, 6.5rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    opacity: 0; animation: fadeUp 1.2s 0.4s forwards;
+  }
+  h1.hero-title .gold {
+    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-deep) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
+  }
+  h1.hero-title .line { display: block; }
+
+  .hero-desc {
+    font-size: 1.05rem; line-height: 1.7; color: var(--text-dim);
+    max-width: 480px; margin-bottom: 3rem; font-weight: 300;
+    opacity: 0; animation: fadeUp 1s 0.6s forwards;
+  }
+
+  .hero-meta {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+    padding: 2rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: fadeUp 1s 0.8s forwards;
+  }
+  .meta-item .label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .meta-item .val { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); }
+
+  .hero-cta {
+    display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 1s 1s forwards;
+  }
+  .btn-primary {
+    padding: 1.2rem 2.5rem;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
+    color: var(--bg);
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.4s;
+    box-shadow: 0 10px 40px -10px var(--gold-glow);
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 60px -10px var(--gold-glow); }
+  .btn-ghost {
+    padding: 1.2rem 0;
+    background: transparent;
+    color: var(--text);
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 1px solid var(--text-mute);
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-ghost:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* Hero ticket visual */
+  .hero-visual { position: relative; height: 600px; opacity: 0; animation: fadeIn 1.5s 0.8s forwards; }
+  .ticket-preview {
+    position: absolute; top: 50%; left: 50%;
+    width: 380px; height: 540px;
+    transform: translate(-50%, -50%) rotate(-6deg);
+    background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid var(--border-strong);
+    padding: 2rem;
+    box-shadow:
+      0 50px 100px -20px rgba(0,0,0,0.8),
+      0 0 60px -20px var(--gold-glow),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .ticket-preview:hover { transform: translate(-50%, -50%) rotate(-2deg) scale(1.03); }
+  .ticket-preview::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 0 50%, var(--bg) 12px, transparent 13px),
+      radial-gradient(circle at 100% 50%, var(--bg) 12px, transparent 13px);
+    pointer-events: none;
+  }
+  .tp-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
+  .tp-brand { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--gold); font-size: 1.15rem; letter-spacing: 0.15em; }
+  .tp-no { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-mute); letter-spacing: 0.15em; }
+  .tp-event { font-family: 'Cormorant Garamond', serif; font-size: 2.3rem; line-height: 1; margin: 1.5rem 0 0.5rem; color: var(--text); }
+  .tp-event-it { font-style: italic; color: var(--gold-bright); }
+  .tp-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 2.5rem; }
+  .tp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 2rem; }
+  .tp-cell .l { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--text-mute); margin-bottom: 0.4rem; text-transform: uppercase; }
+  .tp-cell .v { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); }
+  .tp-qr {
+    width: 110px; height: 110px;
+    margin: 1rem auto 0;
+    background: var(--text);
+    padding: 8px;
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px;
+  }
+  .tp-qr div { background: var(--bg); }
+  .tp-qr div:nth-child(odd) { background: var(--text); }
+  .tp-qr div:nth-child(7n) { background: var(--bg); }
+  .tp-qr div:nth-child(13n) { background: var(--text); }
+  .tp-foot { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.3em; color: var(--text-mute); margin-top: 1rem; text-transform: uppercase; }
+
+  .deco-circle {
+    position: absolute;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .dc-1 { width: 500px; height: 500px; top: -50px; right: -100px; opacity: 0.3; }
+  .deco-circle::before { content: ''; position: absolute; inset: 30px; border: 1px solid var(--border); border-radius: 50%; }
+
+  section { padding: 8rem 3rem; position: relative; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .section-tag::before { content: ''; width: 30px; height: 1px; background: var(--gold); }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 400; line-height: 1; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+  .section-title .it { font-style: italic; color: var(--gold); }
+  .section-desc { font-size: 1.05rem; color: var(--text-dim); max-width: 600px; line-height: 1.7; margin-bottom: 4rem; font-weight: 300; }
+
+  .highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); }
+  .highlight { padding: 3rem 2.5rem; border-right: 1px solid var(--border); position: relative; transition: background 0.4s; }
+  .highlight:last-child { border-right: none; }
+  .highlight:hover { background: var(--bg-soft); }
+  .highlight-num { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--gold); letter-spacing: 0.3em; margin-bottom: 2rem; }
+  .highlight h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 1rem; font-weight: 500; }
+  .highlight p { color: var(--text-dim); line-height: 1.7; font-weight: 300; font-size: 0.95rem; }
+  .highlight-icon { width: 40px; height: 40px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; }
+  .highlight-icon svg { width: 100%; height: 100%; stroke: var(--gold); fill: none; stroke-width: 1; }
+
+  /* Programme */
+  .programme-list { border: 1px solid var(--border); }
+  .prog-row {
+    display: grid; grid-template-columns: 200px 1fr auto;
+    gap: 2rem; align-items: center;
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  .prog-row:last-child { border-bottom: none; }
+  .prog-row:hover { background: var(--bg-soft); }
+  .prog-time { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.15em; }
+  .prog-event { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; }
+  .prog-event .it { font-style: italic; color: var(--gold-bright); }
+  .prog-desc { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem; font-weight: 300; }
+  .prog-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; }
+
+  /* Booking */
+  .booking-section { background: linear-gradient(180deg, transparent, var(--bg-soft) 50%, transparent); }
+  .booking-card {
+    max-width: 720px; margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    padding: 3.5rem 4rem;
+    position: relative;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5), 0 0 80px -30px var(--gold-glow);
+  }
+  .booking-card::before, .booking-card::after {
+    content: ''; position: absolute;
+    width: 30px; height: 30px;
+    border: 1px solid var(--gold);
+  }
+  .booking-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .booking-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .stepper { display: flex; justify-content: space-between; margin-bottom: 3rem; position: relative; }
+  .stepper::before {
+    content: ''; position: absolute;
+    top: 16px; left: 5%; right: 5%;
+    height: 1px; background: var(--border);
+    z-index: 0;
+  }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; position: relative; z-index: 1; }
+  .step-circle {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-mute);
+    transition: all 0.4s;
+  }
+  .step.active .step-circle { background: var(--gold); color: var(--bg); border-color: var(--gold); box-shadow: 0 0 20px var(--gold-glow); }
+  .step.done .step-circle { background: transparent; color: var(--gold); border-color: var(--gold); }
+  .step-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-mute); text-transform: uppercase; transition: color 0.4s; }
+  .step.active .step-label, .step.done .step-label { color: var(--gold); }
+
+  .form-step { display: none; animation: fadeUp 0.5s ease-out; }
+  .form-step.active { display: block; }
+  .form-step h2 { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 400; }
+  .form-step h2 .it { font-style: italic; color: var(--gold); }
+  .form-step .step-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2.5rem; font-weight: 300; }
+
+  .field { margin-bottom: 1.8rem; }
+  .field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.6rem; }
+  .field label .req { color: var(--gold); }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 1rem 1.2rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  .upload-zone {
+    border: 1px dashed var(--border-strong);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: var(--bg);
+    position: relative;
+  }
+  .upload-zone:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.03); }
+  .upload-zone.has-file { border-style: solid; border-color: var(--gold); background: rgba(212, 175, 55, 0.05); }
+  .upload-icon { width: 36px; height: 36px; margin: 0 auto 1rem; stroke: var(--gold); fill: none; stroke-width: 1; }
+  .upload-text { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; }
+  .upload-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-mute); margin-top: 0.5rem; text-transform: uppercase; }
+  .upload-zone input[type="file"] { display: none; }
+  .upload-preview { max-width: 200px; max-height: 200px; margin: 0 auto 1rem; border: 1px solid var(--border); }
+
+  .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
+
+  .alert {
+    padding: 0.9rem 1.2rem;
+    background: rgba(255, 107, 107, 0.08);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    color: var(--error);
+    margin-bottom: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    display: none;
+  }
+  .alert.show { display: block; }
+
+  .check-row { display: flex; align-items: flex-start; gap: 0.8rem; margin: 1rem 0; }
+  .check-row input { width: 18px; height: 18px; accent-color: var(--gold); margin-top: 2px; }
+  .check-row label { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; font-weight: 300; }
+  .check-row label a { color: var(--gold); }
+
+  /* Ticket result */
+  .ticket-result { text-align: center; }
+  .ticket-result .success-mark {
+    width: 60px; height: 60px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--gold);
+    font-size: 1.5rem;
+    box-shadow: 0 0 30px var(--gold-glow);
+  }
+
+  #ticket-render {
+    background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%);
+    width: 100%; max-width: 580px; margin: 2rem auto;
+    padding: 2.5rem;
+    border: 1px solid var(--gold);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+    position: relative;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+  }
+  .tk-top { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
+  .tk-brand-block { font-family: 'Cormorant Garamond', serif; }
+  .tk-brand-block .b1 { font-style: italic; color: var(--gold); font-size: 1.3rem; letter-spacing: 0.15em; }
+  .tk-brand-block .b2 { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-mute); letter-spacing: 0.25em; margin-top: 0.3rem; text-transform: uppercase; }
+  .tk-tno { text-align: right; font-family: 'JetBrains Mono', monospace; }
+  .tk-tno .l { font-size: 0.55rem; color: var(--text-mute); letter-spacing: 0.25em; text-transform: uppercase; }
+  .tk-tno .v { font-size: 0.85rem; color: var(--gold); margin-top: 0.3rem; letter-spacing: 0.1em; }
+
+  .tk-event { font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; margin: 1.5rem 0 0.3rem; line-height: 1; }
+  .tk-event .it { font-style: italic; color: var(--gold-bright); }
+  .tk-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 2rem; }
+
+  .tk-body { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  .tk-photo {
+    width: 100%; aspect-ratio: 1; max-width: 180px;
+    border: 1px solid var(--gold);
+    background: var(--bg-soft);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .tk-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .tk-photo::before {
+    content: ''; position: absolute; top: -1px; left: -1px;
+    width: 12px; height: 12px;
+    border-top: 1px solid var(--gold-bright); border-left: 1px solid var(--gold-bright);
+  }
+  .tk-photo::after {
+    content: ''; position: absolute; bottom: -1px; right: -1px;
+    width: 12px; height: 12px;
+    border-bottom: 1px solid var(--gold-bright); border-right: 1px solid var(--gold-bright);
+  }
+  .tk-info-grid { display: grid; gap: 1rem; }
+  .tk-cell .l { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.3rem; }
+  .tk-cell .v { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; color: var(--gold); word-break: break-word; }
+  .tk-cell .v.small { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--text); }
+
+  .tk-divider { border-top: 1px dashed var(--border); margin: 1.8rem 0; position: relative; }
+  .tk-divider::before, .tk-divider::after {
+    content: ''; position: absolute; top: -8px;
+    width: 16px; height: 16px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+  .tk-divider::before { left: -33px; }
+  .tk-divider::after { right: -33px; }
+
+  .tk-bottom { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center; }
+  .tk-bottom-info .l { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--text-mute); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .tk-bottom-info .v { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--text); line-height: 1.4; }
+  .tk-bottom-info .scan-note { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--text-mute); letter-spacing: 0.15em; margin-top: 0.8rem; line-height: 1.6; }
+  #qr-code { background: white; padding: 8px; }
+  #qr-code img, #qr-code canvas { display: block; }
+
+  .download-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; }
+
+  /* Venue card */
+  .venue-card {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .venue-info { padding: 3rem; background: var(--bg-card); }
+  .venue-name { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; line-height: 1.1; margin-bottom: 0.5rem; }
+  .venue-name .it { font-style: italic; color: var(--gold); }
+  .venue-loc { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 2rem; }
+  .venue-meta-row { display: flex; gap: 2.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .venue-meta-row .item .l { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-mute); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .venue-meta-row .item .v { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); }
+  .venue-cta { margin-top: 1rem; }
+  .venue-map {
+    background: var(--bg-soft);
+    position: relative;
+    min-height: 320px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .venue-map::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+  }
+  .venue-map::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 30%, var(--bg-soft) 80%);
+  }
+  .map-pin {
+    position: relative; z-index: 2;
+    width: 60px; height: 60px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold);
+    background: var(--bg);
+    box-shadow: 0 0 40px var(--gold-glow);
+    animation: pulse 2.5s infinite;
+  }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 40px var(--gold-glow); } 50% { box-shadow: 0 0 70px var(--gold-glow); } }
+  .map-pin svg { width: 28px; height: 28px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+
+  /* Footer */
+  footer {
+    padding: 4rem 3rem 2rem;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+  .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .foot-brand { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 2rem; color: var(--gold); margin-bottom: 1rem; }
+  .foot-text { color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; max-width: 320px; font-weight: 300; }
+  .foot-col h5 { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase; margin-bottom: 1.5rem; }
+  .foot-col a { display: block; color: var(--text-dim); text-decoration: none; font-size: 0.9rem; margin-bottom: 0.7rem; transition: color 0.3s; font-weight: 300; }
+  .foot-col a:hover { color: var(--gold); }
+  .foot-bottom { padding-top: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-mute); letter-spacing: 0.15em; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  .live-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--success); border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: shimmer 2s infinite;
+    box-shadow: 0 0 10px var(--success);
+  }
+
+  @media (max-width: 968px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 4rem; gap: 3rem; }
+    .hero-visual { height: 500px; }
+    .ticket-preview { width: 300px; height: 440px; padding: 1.5rem; }
+    .tp-event { font-size: 1.8rem; }
+    section { padding: 5rem 1.5rem; }
+    .highlights { grid-template-columns: 1fr; }
+    .highlight { border-right: none; border-bottom: 1px solid var(--border); }
+    .booking-card { padding: 2rem 1.5rem; }
+    .field-row { grid-template-columns: 1fr; }
+    .tk-body { grid-template-columns: 1fr; }
+    .tk-photo { max-width: 140px; margin: 0 auto; }
+    .tk-bottom { grid-template-columns: 1fr; }
+    #ticket-render { padding: 1.5rem; }
+    .tk-event { font-size: 1.8rem; }
+    .foot-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .foot-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    .hero-meta { grid-template-columns: 1fr 1fr; }
+    h1.hero-title { font-size: 3rem; }
+    .prog-row { grid-template-columns: 1fr; gap: 0.5rem; padding: 1.5rem; }
+    .venue-card { grid-template-columns: 1fr; }
+    .venue-info { padding: 2rem; }
+    .venue-map { min-height: 220px; }
+  }
+</style>
+</head>
+<body>
+<div class="grain">
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark"></div>
+    LEAMS
+  </div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#programme">Programme</a>
+    <a href="#venue">Venue</a>
+    <a href="#book">Reserve</a>
+  </div>
+  <button class="nav-cta" onclick="scrollToBooking()">Get Pass</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="deco-circle dc-1"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag"><span class="live-dot"></span>Registration Open · Limited Seats</div>
+    <h1 class="hero-title">
+      <span class="line">An Evening</span>
+      <span class="line"><span class="gold">Together,</span></span>
+      <span class="line">As One Family.</span>
+    </h1>
+    <p class="hero-desc">
+      The LEAMS Family Meet is a celebration of the bonds, memories, and milestones we share. Verified entry. One pass per person. Complimentary access for our extended LEAMS family.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="label">Date</div>
+        <div class="val">14 May 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Doors</div>
+        <div class="val">5:30 PM</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Venue</div>
+        <div class="val">Golden Palace</div>
+      </div>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="scrollToBooking()">Reserve Free Pass</button>
+      <button class="btn-ghost" onclick="document.getElementById('about').scrollIntoView({behavior: 'smooth'})">Learn More →</button>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="ticket-preview">
+      <div class="tp-header">
+        <div class="tp-brand">LEAMS</div>
+        <div class="tp-no">№ 0001 · LFM26</div>
+      </div>
+      <div class="tp-event">Family <span class="tp-event-it">Meet</span></div>
+      <div class="tp-sub">One Evening · Together</div>
+      <div class="tp-grid">
+        <div class="tp-cell"><div class="l">Date</div><div class="v">14 · 05 · 26</div></div>
+        <div class="tp-cell"><div class="l">Doors</div><div class="v">5:30 PM</div></div>
+        <div class="tp-cell"><div class="l">Seat</div><div class="v">General</div></div>
+        <div class="tp-cell"><div class="l">Hall</div><div class="v">Golden</div></div>
+      </div>
+      <div class="tp-qr">
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+      <div class="tp-foot">Scan at Entry · Verified Pass</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-tag">About the Meet</div>
+  <h2 class="section-title">One evening. <span class="it">One family.</span></h2>
+  <p class="section-desc">
+    A warm gathering for the entire LEAMS family — friends, faculty, alumni, and loved ones — coming together to celebrate, reconnect, and create memories that stay.
+  </p>
+
+  <div class="highlights">
+    <div class="highlight">
+      <div class="highlight-num">01 / Verified</div>
+      <div class="highlight-icon">
+        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14"/><path d="M14 20 L18 24 L26 16"/></svg>
+      </div>
+      <h3>ID-Verified Entry</h3>
+      <p>Every guest is verified through a government-issued ID for the safety and comfort of our LEAMS family.</p>
+    </div>
+    <div class="highlight">
+      <div class="highlight-num">02 / Single Pass</div>
+      <div class="highlight-icon">
+        <svg viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="20"/><path d="M6 16 L34 16"/><circle cx="13" cy="23" r="2"/></svg>
+      </div>
+      <h3>One Person · One Ticket</h3>
+      <p>To keep the gathering intimate and well-organised, we issue exactly one pass per individual. Non-transferable.</p>
+    </div>
+    <div class="highlight">
+      <div class="highlight-num">03 / Free</div>
+      <div class="highlight-icon">
+        <svg viewBox="0 0 40 40"><path d="M20 6 L24 16 L34 17 L26 24 L28 34 L20 28 L12 34 L14 24 L6 17 L16 16 Z"/></svg>
+      </div>
+      <h3>Complimentary</h3>
+      <p>Entry to the Family Meet is free. Just register, verify, and download your pass — we'll see you there.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAMME -->
+<section id="programme">
+  <div class="section-tag">The Evening</div>
+  <h2 class="section-title">A programme to <span class="it">remember.</span></h2>
+  <p class="section-desc">From welcoming smiles to shared meals — every moment is curated for togetherness.</p>
+
+  <div class="programme-list">
+    <div class="prog-row">
+      <div class="prog-time">5:30 — 6:15 PM</div>
+      <div>
+        <div class="prog-event">Welcome & <span class="it">Reception</span></div>
+        <div class="prog-desc">Registration verification, refreshments, and family meet-and-greet</div>
+      </div>
+      <div class="prog-tag">Foyer</div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-time">6:15 — 7:00 PM</div>
+      <div>
+        <div class="prog-event">Inaugural <span class="it">Ceremony</span></div>
+        <div class="prog-desc">Lamp lighting and address by the LEAMS leadership</div>
+      </div>
+      <div class="prog-tag">Main Hall</div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-time">7:00 — 8:30 PM</div>
+      <div>
+        <div class="prog-event">Cultural <span class="it">Programme</span></div>
+        <div class="prog-desc">Performances by our family members across all ages</div>
+      </div>
+      <div class="prog-tag">Stage</div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-time">8:30 — 10:00 PM</div>
+      <div>
+        <div class="prog-event">Family <span class="it">Dinner</span></div>
+        <div class="prog-desc">A shared meal to close the evening</div>
+      </div>
+      <div class="prog-tag">Banquet</div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section id="book" class="booking-section">
+  <div style="text-align: center; max-width: 700px; margin: 0 auto 4rem;">
+    <div class="section-tag" style="justify-content: center;">Reserve Your Pass</div>
+    <h2 class="section-title">Secure your <span class="it">single seat.</span></h2>
+    <p class="section-desc" style="margin: 0 auto;">Three quick steps. Identity verified. Ticket delivered instantly with QR entry pass.</p>
+  </div>
+
+  <div class="booking-card">
+    <div class="stepper">
+      <div class="step active" data-step="1">
+        <div class="step-circle">01</div>
+        <div class="step-label">Identity</div>
+      </div>
+      <div class="step" data-step="2">
+        <div class="step-circle">02</div>
+        <div class="step-label">Verify</div>
+      </div>
+      <div class="step" data-step="3">
+        <div class="step-circle">03</div>
+        <div class="step-label">Photo</div>
+      </div>
+      <div class="step" data-step="4">
+        <div class="step-circle">04</div>
+        <div class="step-label">Ticket</div>
+      </div>
+    </div>
+
+    <div class="alert" id="form-alert"></div>
+
+    <div class="form-step active" data-step="1">
+      <h2>Begin with <span class="it">who you are.</span></h2>
+      <p class="step-desc">Your details remain secure and visible only at the entry checkpoint.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" id="fullName" placeholder="As on your government ID" required>
+        </div>
+        <div class="field">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="you@domain.com" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Phone Number <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="+91 98765 43210" required>
+        </div>
+        <div class="field">
+          <label>Date of Birth <span class="req">*</span></label>
+          <input type="date" id="dob" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>City <span class="req">*</span></label>
+        <input type="text" id="city" placeholder="Trivandrum, Kochi, Calicut…" required>
+      </div>
+
+      <div class="form-nav">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-mute); letter-spacing: 0.2em;">STEP 01 / 04</span>
+        <button class="btn-primary" onclick="nextStep(1)">Continue →</button>
+      </div>
+    </div>
+
+    <div class="form-step" data-step="2">
+      <h2>Verify your <span class="it">identity.</span></h2>
+      <p class="step-desc">Upload any government-issued photo ID. Aadhaar, PAN, Passport, or Driving Licence are accepted.</p>
+
+      <div class="field">
+        <label>ID Type <span class="req">*</span></label>
+        <select id="idType" required>
+          <option value="">Select ID type</option>
+          <option value="Aadhaar Card">Aadhaar Card</option>
+          <option value="PAN Card">PAN Card</option>
+          <option value="Passport">Passport</option>
+          <option value="Driving Licence">Driving Licence</option>
+          <option value="Voter ID">Voter ID</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>ID Number <span class="req">*</span></label>
+        <input type="text" id="idNumber" placeholder="Enter your ID number" required>
+      </div>
+
+      <div class="field">
+        <label>Upload ID Document <span class="req">*</span></label>
+        <div class="upload-zone" id="idUploadZone" onclick="document.getElementById('idFile').click()">
+          <input type="file" id="idFile" accept="image/*,.pdf" onchange="handleFileUpload(this, 'idUploadZone', 'id')">
+          <svg class="upload-icon" viewBox="0 0 40 40">
+            <path d="M20 26 L20 8 M14 14 L20 8 L26 14"/>
+            <path d="M8 28 L8 32 L32 32 L32 28"/>
+          </svg>
+          <div class="upload-text" id="idUploadText">Click to Upload ID</div>
+          <div class="upload-sub">JPG · PNG · PDF · Max 5MB</div>
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="consent" required>
+        <label for="consent">I confirm the document I've uploaded is genuine, belongs to me, and I consent to verification at venue entry. My data is used solely for ticket verification.</label>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-ghost" onclick="prevStep(2)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(2)">Continue →</button>
+      </div>
+    </div>
+
+    <div class="form-step" data-step="3">
+      <h2>Add your <span class="it">photograph.</span></h2>
+      <p class="step-desc">A recent, clear photo. This appears on your ticket and is matched at entry.</p>
+
+      <div class="field">
+        <label>Profile Photo <span class="req">*</span></label>
+        <div class="upload-zone" id="photoUploadZone" onclick="document.getElementById('photoFile').click()">
+          <input type="file" id="photoFile" accept="image/*" onchange="handleFileUpload(this, 'photoUploadZone', 'photo')">
+          <svg class="upload-icon" viewBox="0 0 40 40">
+            <circle cx="20" cy="16" r="6"/>
+            <path d="M8 32 C 8 24, 14 22, 20 22 C 26 22, 32 24, 32 32"/>
+          </svg>
+          <div class="upload-text" id="photoUploadText">Click to Upload Photo</div>
+          <div class="upload-sub">Clear face · JPG / PNG · Max 3MB</div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg); border-left: 2px solid var(--gold); padding: 1.2rem 1.5rem; margin-top: 2rem;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--gold); letter-spacing: 0.25em; margin-bottom: 0.5rem; text-transform: uppercase;">Photo Guidelines</div>
+        <ul style="list-style: none; color: var(--text-dim); font-size: 0.85rem; line-height: 1.8; font-weight: 300;">
+          <li>· Face clearly visible, looking forward</li>
+          <li>· Plain or neutral background</li>
+          <li>· No filters, sunglasses, or face covering</li>
+        </ul>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-ghost" onclick="prevStep(3)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(3)">Generate Ticket →</button>
+      </div>
+    </div>
+
+    <div class="form-step" data-step="4">
+      <div class="ticket-result">
+        <div class="success-mark">✓</div>
+        <h2>Your seat is <span class="it">reserved.</span></h2>
+        <p class="step-desc" style="text-align: center; max-width: 460px; margin: 0.5rem auto 0;">Your verified pass is below. Download it and present at the venue entry.</p>
+
+        <div id="ticket-render">
+          <div class="tk-top">
+            <div class="tk-brand-block">
+              <div class="b1">LEAMS</div>
+              <div class="b2">Family Meet · 2026</div>
+            </div>
+            <div class="tk-tno">
+              <div class="l">Ticket №</div>
+              <div class="v" id="tk-number">LFM-2026-000001</div>
+            </div>
+          </div>
+
+          <div class="tk-event">An <span class="it">Evening</span> Together</div>
+          <div class="tk-sub">Single Pass · Verified Entry</div>
+
+          <div class="tk-body">
+            <div class="tk-photo">
+              <img id="tk-photo-img" src="" alt="Attendee">
+            </div>
+            <div class="tk-info-grid">
+              <div class="tk-cell">
+                <div class="l">Attendee</div>
+                <div class="v" id="tk-name">—</div>
+              </div>
+              <div class="tk-cell">
+                <div class="l">ID Reference</div>
+                <div class="v small" id="tk-id">—</div>
+              </div>
+              <div class="tk-cell">
+                <div class="l">Date · Doors</div>
+                <div class="v">14 May 2026 · 5:30 PM</div>
+              </div>
+              <div class="tk-cell">
+                <div class="l">Hall</div>
+                <div class="v">Golden Hall · General</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tk-divider"></div>
+
+          <div class="tk-bottom">
+            <div class="tk-bottom-info">
+              <div class="l">Venue</div>
+              <div class="v">Golden Palace International<br>Convention Centre · Trivandrum</div>
+              <div class="scan-note">Present this QR at entry. Match with photo ID.<br>Non-transferable. Single-use only.</div>
+            </div>
+            <div id="qr-code"></div>
+          </div>
+        </div>
+
+        <div class="download-actions">
+          <button class="btn-primary" onclick="downloadTicket()">↓ Download Ticket</button>
+          <button class="btn-ghost" onclick="resetForm()">Book Another</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- VENUE -->
+<section id="venue">
+  <div class="section-tag">Venue</div>
+  <h2 class="section-title">Where we <span class="it">gather.</span></h2>
+  <p class="section-desc">A landmark of elegance in the heart of Trivandrum, chosen for its warmth and grandeur — the perfect backdrop for our family evening.</p>
+
+  <div class="venue-card">
+    <div class="venue-info">
+      <div class="venue-name">Golden Palace <span class="it">International</span> Convention Centre</div>
+      <div class="venue-loc">Trivandrum · Kerala</div>
+
+      <div class="venue-meta-row">
+        <div class="item">
+          <div class="l">Date</div>
+          <div class="v">14 May 2026</div>
+        </div>
+        <div class="item">
+          <div class="l">Doors</div>
+          <div class="v">5:30 PM</div>
+        </div>
+        <div class="item">
+          <div class="l">Programme</div>
+          <div class="v">6:15 — 10:00 PM</div>
+        </div>
+      </div>
+
+      <div class="venue-cta">
+        <a href="https://share.google/iaFiXuF8Oh8pARXM9" target="_blank" rel="noopener" class="btn-primary">↗ View on Google Maps</a>
+      </div>
+    </div>
+    <div class="venue-map">
+      <div class="map-pin">
+        <svg viewBox="0 0 24 24"><path d="M12 2 C 8 2, 5 5, 5 9 C 5 14, 12 22, 12 22 C 12 22, 19 14, 19 9 C 19 5, 16 2, 12 2 Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-brand">LEAMS</div>
+      <p class="foot-text">A celebration of the bonds, memories, and milestones we share. The LEAMS Family Meet — one evening, one family.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Event</h5>
+      <a href="#about">About</a>
+      <a href="#programme">Programme</a>
+      <a href="#venue">Venue</a>
+      <a href="#book">Reserve</a>
+    </div>
+    <div class="foot-col">
+      <h5>Support</h5>
+      <a href="#">Contact</a>
+      <a href="#">FAQ</a>
+      <a href="#">Help</a>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Verification Policy</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <div>© 2026 LEAMS FAMILY MEET · ALL RIGHTS RESERVED</div>
+    <div>BUILT WITH CARE</div>
+  </div>
+</footer>
+
+</div>
+
+<script>
+  // In-memory storage of issued tickets
+  // For production, replace with real backend storage
+  const issuedTickets = new Map();
+  let ticketCounter = 1;
+
+  let formData = {};
+  let idFileData = null;
+  let photoFileData = null;
+
+  function scrollToBooking() {
+    document.getElementById('book').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function showAlert(msg) {
+    const alert = document.getElementById('form-alert');
+    alert.textContent = msg;
+    alert.classList.add('show');
+    setTimeout(() => alert.classList.remove('show'), 4000);
+  }
+
+  function hideAlert() {
+    document.getElementById('form-alert').classList.remove('show');
+  }
+
+  function setStep(n) {
+    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.form-step[data-step="${n}"]`).classList.add('active');
+
+    document.querySelectorAll('.step').forEach(s => {
+      const sn = parseInt(s.dataset.step);
+      s.classList.remove('active', 'done');
+      if (sn < n) s.classList.add('done');
+      else if (sn === n) s.classList.add('active');
+    });
+
+    document.querySelector('.booking-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function nextStep(current) {
+    hideAlert();
+
+    if (current === 1) {
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const dob = document.getElementById('dob').value;
+      const city = document.getElementById('city').value.trim();
+
+      if (!fullName || fullName.length < 2) return showAlert('Please enter your full name.');
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAlert('Please enter a valid email address.');
+      if (!phone || phone.length < 8) return showAlert('Please enter a valid phone number.');
+      if (!dob) return showAlert('Please select your date of birth.');
+      if (!city) return showAlert('Please enter your city.');
+
+      if (issuedTickets.has(email.toLowerCase())) {
+        return showAlert('This email already has a ticket. One person, one pass.');
+      }
+
+      formData = { fullName, email, phone, dob, city };
+      setStep(2);
+    }
+    else if (current === 2) {
+      const idType = document.getElementById('idType').value;
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const consent = document.getElementById('consent').checked;
+
+      if (!idType) return showAlert('Please select an ID type.');
+      if (!idNumber || idNumber.length < 4) return showAlert('Please enter a valid ID number.');
+      if (!idFileData) return showAlert('Please upload your ID document.');
+      if (!consent) return showAlert('Please confirm the verification consent.');
+
+      const idKey = (idType + ':' + idNumber).toLowerCase();
+      if (issuedTickets.has(idKey)) {
+        return showAlert('This ID has already been used. One person, one pass.');
+      }
+
+      formData.idType = idType;
+      formData.idNumber = idNumber;
+      setStep(3);
+    }
+    else if (current === 3) {
+      if (!photoFileData) return showAlert('Please upload your profile photograph.');
+      generateTicket();
+      setStep(4);
+    }
+  }
+
+  function prevStep(current) {
+    hideAlert();
+    setStep(current - 1);
+  }
+
+  function handleFileUpload(input, zoneId, type) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const maxSize = type === 'photo' ? 3 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return showAlert(`File too large. Max ${type === 'photo' ? '3' : '5'}MB.`);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const zone = document.getElementById(zoneId);
+      const isImage = file.type.startsWith('image/');
+
+      if (type === 'id') {
+        idFileData = { name: file.name, data: e.target.result, type: file.type };
+      } else {
+        photoFileData = { name: file.name, data: e.target.result, type: file.type };
+      }
+
+      zone.classList.add('has-file');
+      const previewHTML = isImage
+        ? `<img src="${e.target.result}" class="upload-preview" alt="preview">`
+        : `<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--gold); margin-bottom: 1rem;">📄 ${file.name}</div>`;
+
+      zone.innerHTML = `
+        ${previewHTML}
+        <input type="file" id="${input.id}" accept="${input.accept}" onchange="handleFileUpload(this, '${zoneId}', '${type}')">
+        <div class="upload-text" style="color: var(--gold);">✓ ${file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name}</div>
+        <div class="upload-sub">Click to change</div>
+      `;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function generateTicket() {
+    const ticketNum = `LFM-2026-${String(ticketCounter++).padStart(6, '0')}`;
+    formData.ticketNumber = ticketNum;
+    formData.issuedAt = new Date().toISOString();
+
+    issuedTickets.set(formData.email.toLowerCase(), ticketNum);
+    issuedTickets.set((formData.idType + ':' + formData.idNumber).toLowerCase(), ticketNum);
+
+    document.getElementById('tk-number').textContent = ticketNum;
+    document.getElementById('tk-name').textContent = formData.fullName;
+    const maskedId = formData.idNumber.length > 4
+      ? '•'.repeat(formData.idNumber.length - 4) + formData.idNumber.slice(-4)
+      : formData.idNumber;
+    document.getElementById('tk-id').textContent = `${formData.idType} · ${maskedId}`;
+    document.getElementById('tk-photo-img').src = photoFileData.data;
+
+    const qrPayload = JSON.stringify({
+      tn: ticketNum,
+      n: formData.fullName,
+      id: formData.idType + ':' + formData.idNumber,
+      e: formData.email,
+      ev: 'LEAMS-FAMILY-MEET-2026',
+      ts: formData.issuedAt
+    });
+
+    const qrContainer = document.getElementById('qr-code');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+      text: qrPayload,
+      width: 110,
+      height: 110,
+      colorDark: '#0a0a0a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  function downloadTicket() {
+    const ticket = document.getElementById('ticket-render');
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+
+    html2canvas(ticket, {
+      backgroundColor: '#0a0a0a',
+      scale: 2,
+      logging: false,
+      useCORS: true
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `LEAMS-FamilyMeet-Ticket-${formData.ticketNumber}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }).catch(err => {
+      console.error(err);
+      showAlert('Could not generate download. Please try again.');
+      btn.textContent = originalText;
+      btn.disabled = false;
+    });
+  }
+
+  function resetForm() {
+    formData = {};
+    idFileData = null;
+    photoFileData = null;
+
+    document.querySelectorAll('input, select').forEach(el => {
+      if (el.type === 'checkbox') el.checked = false;
+      else el.value = '';
+    });
+
+    document.getElementById('idUploadZone').classList.remove('has-file');
+    document.getElementById('idUploadZone').innerHTML = `
+      <input type="file" id="idFile" accept="image/*,.pdf" onchange="handleFileUpload(this, 'idUploadZone', 'id')">
+      <svg class="upload-icon" viewBox="0 0 40 40">
+        <path d="M20 26 L20 8 M14 14 L20 8 L26 14"/>
+        <path d="M8 28 L8 32 L32 32 L32 28"/>
+      </svg>
+      <div class="upload-text" id="idUploadText">Click to Upload ID</div>
+      <div class="upload-sub">JPG · PNG · PDF · Max 5MB</div>
+    `;
+
+    document.getElementById('photoUploadZone').classList.remove('has-file');
+    document.getElementById('photoUploadZone').innerHTML = `
+      <input type="file" id="photoFile" accept="image/*" onchange="handleFileUpload(this, 'photoUploadZone', 'photo')">
+      <svg class="upload-icon" viewBox="0 0 40 40">
+        <circle cx="20" cy="16" r="6"/>
+        <path d="M8 32 C 8 24, 14 22, 20 22 C 26 22, 32 24, 32 32"/>
+      </svg>
+      <div class="upload-text" id="photoUploadText">Click to Upload Photo</div>
+      <div class="upload-sub">Clear face · JPG / PNG · Max 3MB</div>
+    `;
+
+    setStep(1);
+  }
+</script>
+
+</body>
+</html>
