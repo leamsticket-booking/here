@@ -18,170 +18,58 @@
     --text: #f5f1e8;
     --text-dim: #9a9489;
     --text-mute: #5c574e;
-    --border: rgba(212, 175, 55, 0.18);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { 
-    background: var(--bg); 
-    color: var(--text); 
-    font-family: 'Inter', sans-serif; 
-    height: 100vh; 
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    background: var(--bg); color: var(--text); 
+    font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
 
-  /* Cinematic Background */
   body::before {
-    content: '';
-    position: fixed; inset: 0;
+    content: ''; position: fixed; inset: 0;
     background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15), transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+    pointer-events: none; z-index: 0;
   }
 
-  .container {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    width: 100%;
-    max-width: 1000px;
-    padding: 2rem;
-  }
+  .container { position: relative; z-index: 1; text-align: center; width: 100%; max-width: 1000px; padding: 2rem; }
+  .brand { font-family: 'Cormorant Garamond', serif; font-size: 2rem; letter-spacing: 0.2em; color: var(--gold); margin-bottom: 3rem; font-style: italic; }
 
-  .brand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2rem;
-    letter-spacing: 0.2em;
-    color: var(--gold);
-    margin-bottom: 3rem;
-    font-style: italic;
-  }
-
-  /* The Shuffler Screen */
-  #shuffler-screen {
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .shuffle-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(4rem, 8vw, 7rem);
-    line-height: 1;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--text) 0%, var(--gold-bright) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: blur(0px);
-    transition: filter 0.1s;
-  }
-
+  #shuffler-screen { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .shuffle-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(4rem, 8vw, 7rem); line-height: 1; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--gold-bright) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: blur(0px); transition: filter 0.1s; }
   .shuffle-name.blur { filter: blur(4px); opacity: 0.7; }
+  .shuffle-ticket { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; }
 
-  .shuffle-ticket {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.5rem;
-    letter-spacing: 0.3em;
-    color: var(--gold);
-    text-transform: uppercase;
-  }
+  #winner-screen { display: none; animation: zoomIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  .winner-photo-wrapper { width: 250px; height: 250px; margin: 0 auto 2rem; border: 2px solid var(--gold); padding: 10px; border-radius: 50%; position: relative; box-shadow: 0 0 80px var(--gold-glow); }
+  .winner-photo-wrapper::before { content: ''; position: absolute; inset: -10px; border: 1px dashed var(--gold); border-radius: 50%; animation: spin 20s linear infinite; }
+  .winner-photo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .winner-title { font-family: 'JetBrains Mono', monospace; font-size: 1rem; letter-spacing: 0.4em; color: var(--gold-bright); text-transform: uppercase; margin-bottom: 1rem; }
 
-  /* The Winner Reveal Screen */
-  #winner-screen {
-    display: none;
-    animation: zoomIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  }
-
-  .winner-photo-wrapper {
-    width: 250px;
-    height: 250px;
-    margin: 0 auto 2rem;
-    border: 2px solid var(--gold);
-    padding: 10px;
-    border-radius: 50%;
-    position: relative;
-    box-shadow: 0 0 80px var(--gold-glow);
-  }
-
-  .winner-photo-wrapper::before {
-    content: ''; position: absolute; inset: -10px;
-    border: 1px dashed var(--gold); border-radius: 50%;
-    animation: spin 20s linear infinite;
-  }
-
-  .winner-photo {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .winner-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    letter-spacing: 0.4em;
-    color: var(--gold-bright);
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-  }
-
-  /* Controls */
-  .btn-primary {
-    padding: 1.2rem 3rem;
-    margin-top: 4rem;
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
-    color: var(--bg);
-    border: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 10px 40px -10px var(--gold-glow);
-    transition: all 0.3s;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 20px 60px -10px var(--gold-glow);
-  }
-
-  .status-text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text-mute);
-    margin-top: 2rem;
-    letter-spacing: 0.1em;
-  }
+  .btn-primary { padding: 1.2rem 3rem; margin-top: 4rem; background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep)); color: var(--bg); border: none; font-family: 'JetBrains Mono', monospace; font-size: 1rem; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 600; cursor: pointer; box-shadow: 0 10px 40px -10px var(--gold-glow); transition: all 0.3s; }
+  .btn-primary:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 20px 60px -10px var(--gold-glow); }
+  .status-text { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-mute); margin-top: 2rem; letter-spacing: 0.1em; }
 
   @keyframes spin { 100% { transform: rotate(360deg); } }
-  @keyframes zoomIn { 
-    0% { opacity: 0; transform: scale(0.8); } 
-    100% { opacity: 1; transform: scale(1); } 
-  }
+  @keyframes zoomIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 </style>
 </head>
 <body>
 
+<!-- EMBEDDED AUDIO ELEMENTS -->
+<audio id="audio-drumroll" src="drumroll.mp3" preload="auto" loop></audio>
+<audio id="audio-tada" src="tada.mp3" preload="auto"></audio>
+
 <div class="container">
   <div class="brand">LEAMS FAMILY MEET</div>
 
-  <!-- Screen 1: Idle & Shuffling -->
   <div id="shuffler-screen">
     <div class="shuffle-name" id="display-name">Ready for Draw</div>
     <div class="shuffle-ticket" id="display-ticket">———</div>
     <button class="btn-primary" id="start-btn" onclick="startDraw()">Commence Draw</button>
   </div>
 
-  <!-- Screen 2: Winner Reveal -->
   <div id="winner-screen">
     <div class="winner-title">✦ Tonight's Lucky Winner ✦</div>
     <div class="winner-photo-wrapper">
@@ -196,7 +84,7 @@
 
 <script>
   // ═══════════════════════════════════════════════════════════
-  // 🔐 SUPABASE CONFIGURATION (Use your exact same keys here)
+  // 🔐 SUPABASE CONFIGURATION (Paste your keys back here!)
   // ═══════════════════════════════════════════════════════════
   const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
@@ -205,17 +93,17 @@
   let attendees = [];
   let shuffleInterval;
   
-  // Audio setup (Optional: replace with your own sound file URLs)
-  // const drumroll = new Audio('path/to/drumroll.mp3');
-  // const tada = new Audio('path/to/tada.mp3');
+  // Link to HTML Audio Elements
+  const soundDrumroll = document.getElementById('audio-drumroll');
+  const soundTada = document.getElementById('audio-tada');
 
-  // 1. Fetch Checked-in Attendees on load
+  // Fetch Checked-in Attendees
   async function fetchAttendees() {
     try {
       const { data, error } = await db
         .from('registrations')
         .select('full_name, ticket_number, photo_url')
-        .eq('checked_in', true); // ONLY pull people who are at the venue!
+        .eq('checked_in', true);
 
       if (error) throw error;
       
@@ -228,8 +116,7 @@
       }
     } catch (err) {
       console.error(err);
-      document.getElementById('status-text').textContent = "Error connecting to registry. (Using Demo Data)";
-      // Fallback Demo Data for testing
+      document.getElementById('status-text').textContent = "Error connecting. (Using Demo Data)";
       attendees = [
         { full_name: "Muhammed Razik", ticket_number: "LFM-2026-001", photo_url: "https://i.pravatar.cc/300?img=11" },
         { full_name: "Shavaf Shamsudheen", ticket_number: "LFM-2026-042", photo_url: "https://i.pravatar.cc/300?img=12" },
@@ -239,23 +126,22 @@
     }
   }
 
-  // 2. The Draw Logic
+  // Start the Draw
   function startDraw() {
     if (attendees.length === 0) return;
 
-    // Hide button and status
     document.getElementById('start-btn').style.display = 'none';
     document.getElementById('status-text').style.opacity = '0';
     
-    // Optional: Play drumroll
-    // drumroll.play();
+    // 🎵 FORCE PLAY DRUMROLL
+    soundDrumroll.currentTime = 0;
+    soundDrumroll.play();
 
     const nameDisplay = document.getElementById('display-name');
     const ticketDisplay = document.getElementById('display-ticket');
     
-    // Start rapid shuffling effect
     nameDisplay.classList.add('blur');
-    let speed = 50; // ms per name change
+    let speed = 50; 
     
     shuffleInterval = setInterval(() => {
       const randomPerson = attendees[Math.floor(Math.random() * attendees.length)];
@@ -263,33 +149,29 @@
       ticketDisplay.textContent = randomPerson.ticket_number;
     }, speed);
 
-    // Stop shuffling after 6 seconds and reveal winner
     setTimeout(revealWinner, 6000);
   }
 
+  // Reveal the Winner
   function revealWinner() {
     clearInterval(shuffleInterval);
     
-    // Optional: Play win sound
-    // drumroll.pause();
-    // tada.play();
+    // 🎵 STOP DRUMROLL, PLAY TADA
+    soundDrumroll.pause();
+    soundTada.currentTime = 0; 
+    soundTada.play();
 
-    // Pick the final winner
     const winner = attendees[Math.floor(Math.random() * attendees.length)];
 
-    // Hide Shuffler, Show Winner Screen
     document.getElementById('shuffler-screen').style.display = 'none';
     document.getElementById('winner-screen').style.display = 'block';
 
-    // Populate Winner Data
     document.getElementById('winner-photo').src = winner.photo_url || 'https://via.placeholder.com/250/0a0a0a/d4af37?text=LEAMS';
     document.getElementById('winner-name').textContent = winner.full_name;
     document.getElementById('winner-ticket').textContent = winner.ticket_number;
   }
 
-  // Initialize
   fetchAttendees();
 </script>
-
 </body>
 </html>
