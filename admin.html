@@ -303,16 +303,19 @@
     document.getElementById('checkedCount').textContent = checkedIn;
   }
 
-  function filterTable() {
+function filterTable() {
     const query = document.getElementById('searchInput').value.toLowerCase();
+    
     const filtered = globalData.filter(a => {
-      return (
-        (a.full_name && a.full_name.toLowerCase().includes(query)) ||
-        (a.ticket_number && a.ticket_number.toLowerCase().includes(query)) ||
-        (a.email && a.email.toLowerCase().includes(query)) ||
-        (a.phone && a.phone.toLowerCase().includes(query))
-      );
+      // We wrap everything in String() to prevent crashes if Supabase returns a number
+      const nameMatch = a.full_name ? String(a.full_name).toLowerCase().includes(query) : false;
+      const ticketMatch = a.ticket_number ? String(a.ticket_number).toLowerCase().includes(query) : false;
+      const emailMatch = a.email ? String(a.email).toLowerCase().includes(query) : false;
+      const phoneMatch = a.phone ? String(a.phone).toLowerCase().includes(query) : false;
+      
+      return nameMatch || ticketMatch || emailMatch || phoneMatch;
     });
+    
     renderTable(filtered);
   }
 
