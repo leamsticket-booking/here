@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LEAMS · Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #111;
+    --bg-card: #161616;
+    --gold: #d4af37;
+    --gold-bright: #f4d77b;
+    --text: #f5f1e8;
+    --text-dim: #9a9489;
+    --text-mute: #5c574e;
+    --border: rgba(212, 175, 55, 0.18);
+    --border-strong: rgba(212, 175, 55, 0.4);
+    --error: #ff6b6b;
+    --success: #5fd991;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height: 100vh;
+    background-image: radial-gradient(ellipse at top, rgba(212,175,55,0.05), transparent 80%);
+  }
+
+  /* Header & Stats */
+  .header {
+    padding: 1.5rem 3rem; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(10,10,10,0.8); backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.6rem; color: var(--gold); letter-spacing: 0.15em; }
+  .logo .sub { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-mute); letter-spacing: 0.3em; text-transform: uppercase; margin-top: 0.2rem; }
+  .stats { display: flex; gap: 3rem; }
+  .stat { text-align: right; }
+  .stat .l { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; }
+  .stat .v { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--gold); margin-top: 0.2rem; line-height: 1; }
+
+  /* Layout */
+  .main { max-width: 1400px; margin: 0 auto; padding: 3rem; display: none; }
+  
+  /* Login Screen */
+  .login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+  .login-card {
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    padding: 3rem; width: 100%; max-width: 450px; position: relative;
+  }
+  .login-card::before, .login-card::after { content: ''; position: absolute; width: 20px; height: 20px; border: 1px solid var(--gold); }
+  .login-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .login-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  .login-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 400; margin-bottom: 1rem; }
+  .login-card h2 .it { font-style: italic; color: var(--gold); }
+  .login-card .desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6; }
+
+  /* Inputs & Buttons */
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 1rem 1.2rem; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s;
+  }
+  input:focus { outline: none; border-color: var(--gold); }
+  
+  .btn {
+    padding: 1rem 2rem; border: none; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 0.25em; text-transform: uppercase; font-weight: 600;
+    transition: all 0.3s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color: var(--bg); }
+  .btn-primary:hover { box-shadow: 0 10px 30px -10px rgba(212,175,55,0.5); transform: translateY(-2px); }
+  .btn-ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-ghost:hover { background: var(--gold); color: var(--bg); }
+  .btn-danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
+  .btn-danger:hover { background: rgba(255, 107, 107, 0.1); }
+  .btn-small { padding: 0.5rem 1rem; font-size: 0.6rem; letter-spacing: 0.15em; }
+
+  /* Toolbar */
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 2rem; }
+  .search-box { flex: 1; max-width: 500px; position: relative; }
+  .search-box input { border-radius: 50px; padding-left: 1.5rem; border-color: var(--border-strong); }
+
+  /* Data Table */
+  .table-container { background: var(--bg-card); border: 1px solid var(--border); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-mute);
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border-strong); background: rgba(10,10,10,0.5);
+  }
+  td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover { background: rgba(212,175,55,0.03); }
+  
+  .td-photo img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
+  .td-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--gold-bright); margin-bottom: 0.2rem; }
+  .td-email { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-dim); }
+  .td-ticket { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text); letter-spacing: 0.1em; }
+  .td-phone { font-size: 0.85rem; color: var(--text-dim); }
+  
+  /* Status Badges */
+  .status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.4rem 0.8rem; border-radius: 50px; }
+  .status.in { background: rgba(95, 217, 145, 0.1); color: var(--success); border: 1px solid rgba(95, 217, 145, 0.3); }
+  .status.out { background: rgba(255, 179, 71, 0.1); color: var(--gold); border: 1px solid rgba(255, 179, 71, 0.3); }
+  
+  .actions { display: flex; gap: 0.5rem; }
+
+  .err-banner { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: var(--error); padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+
+  /* Loading State */
+  .loader { text-align: center; padding: 4rem; display: none; }
+  .spinner { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    LEAMS
+    <div class="sub">Command Center · Dashboard</div>
+  </div>
+  <div class="stats" id="statsBar" style="display: none;">
+    <div class="stat"><div class="l">Checked In</div><div class="v" id="checkedCount">0</div></div>
+    <div class="stat"><div class="l">Total Reg.</div><div class="v" id="totalCount">0</div></div>
+  </div>
+</div>
+
+<!-- Login View -->
+<div class="login-wrapper" id="loginView">
+  <div class="login-card">
+    <h2>Admin <span class="it">access.</span></h2>
+    <p class="desc">Enter the master administrative PIN to view the guest list and manage attendees.</p>
+    <div id="loginErr"></div>
+    <div style="margin-bottom: 1.5rem;">
+      <input type="password" id="pinInput" placeholder="••••••" autofocus>
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="checkLogin()">Unlock Dashboard</button>
+  </div>
+</div>
+
+<!-- Main Dashboard View -->
+<div class="main" id="dashboardView">
+  
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by name, ticket, phone, or email..." onkeyup="filterTable()">
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <button class="btn btn-ghost" onclick="fetchData()">↻ Refresh</button>
+      <button class="btn btn-primary" onclick="exportCSV()">↓ Export CSV</button>
+    </div>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase;">Syncing Database...</div>
+  </div>
+
+  <div class="table-container" id="tableContainer">
+    <table id="attendeeTable">
+      <thead>
+        <tr>
+          <th>Attendee</th>
+          <th>Ticket & ID Info</th>
+          <th>Contact</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Rows populated by JS -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // 🔐 SUPABASE CONFIG — paste exact same keys here
+  // ═══════════════════════════════════════════════════════════
+  const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
+  
+  // 🔐 Admin Dashboard PIN (Make this different from the Gate PIN)
+  const ADMIN_PIN = '999999'; 
+  // ═══════════════════════════════════════════════════════════
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let globalData = [];
+
+  // --- Auth Logic ---
+  function checkLogin() {
+    const pin = document.getElementById('pinInput').value;
+    if (pin === ADMIN_PIN) {
+      sessionStorage.setItem('adminAuth', '1');
+      showDashboard();
+    } else {
+      document.getElementById('loginErr').innerHTML = '<div class="err-banner">Incorrect Master PIN. Access Denied.</div>';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  document.getElementById('pinInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkLogin();
+  });
+
+  if (sessionStorage.getItem('adminAuth') === '1') {
+    showDashboard();
+  }
+
+  function showDashboard() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'block';
+    document.getElementById('statsBar').style.display = 'flex';
+    fetchData();
+  }
+
+  // --- Data Fetching & Rendering ---
+  async function fetchData() {
+    document.getElementById('tableContainer').style.display = 'none';
+    document.getElementById('loader').style.display = 'block';
+
+    try {
+      // Fetch all registrations ordered by newest first
+      const { data, error } = await db
+        .from('registrations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      globalData = data;
+      renderTable(globalData);
+      updateStats();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to sync with registry. Check connection.");
+    } finally {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('tableContainer').style.display = 'block';
+    }
+  }
+
+  function renderTable(dataArray) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    if (dataArray.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding: 3rem;">No attendees found matching your criteria.</td></tr>';
+      return;
+    }
+
+    dataArray.forEach(a => {
+      const photo = a.photo_url || 'https://via.placeholder.com/150/0a0a0a/d4af37?text=?';
+      const statusClass = a.checked_in ? 'in' : 'out';
+      const statusText = a.checked_in ? 'In Venue' : 'Pending';
+      const toggleText = a.checked_in ? 'Undo Check-In' : 'Manual Check-In';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex; align-items:center; gap:1.2rem;">
+            <div class="td-photo"><img src="${photo}" loading="lazy"></div>
+            <div>
+              <div class="td-name">${escapeHtml(a.full_name)}</div>
+              <div class="td-email">${escapeHtml(a.email)}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="td-ticket">${a.ticket_number}</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--text-mute); margin-top:0.3rem;">${a.id_type}</div>
+        </td>
+        <td>
+          <div class="td-phone">${escapeHtml(a.phone)}</div>
+          <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.3rem;">${escapeHtml(a.city)}</div>
+        </td>
+        <td>
+          <div class="status ${statusClass}">
+            <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor;"></span>
+            ${statusText}
+          </div>
+        </td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-ghost btn-small" onclick="toggleStatus('${a.id}', ${a.checked_in})">${toggleText}</button>
+            <button class="btn btn-danger btn-small" onclick="deleteRecord('${a.id}', '${escapeHtml(a.full_name)}')">Delete</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateStats() {
+    const total = globalData.length;
+    const checkedIn = globalData.filter(a => a.checked_in).length;
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('checkedCount').textContent = checkedIn;
+  }
+
+  function filterTable() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = globalData.filter(a => {
+      return (
+        (a.full_name && a.full_name.toLowerCase().includes(query)) ||
+        (a.ticket_number && a.ticket_number.toLowerCase().includes(query)) ||
+        (a.email && a.email.toLowerCase().includes(query)) ||
+        (a.phone && a.phone.toLowerCase().includes(query))
+      );
+    });
+    renderTable(filtered);
+  }
+
+  // --- Database Actions ---
+
+  async function toggleStatus(recordId, currentStatus) {
+    const newStatus = !currentStatus;
+    const confirmMsg = newStatus 
+      ? "Manually check this person in? (They will be added to the Lucky Draw)" 
+      : "Undo check-in? (They will be removed from the venue count and Lucky Draw)";
+      
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const { error } = await db
+        .from('registrations')
+        .update({ 
+          checked_in: newStatus,
+          checked_in_at: newStatus ? new Date().toISOString() : null 
+        })
+        .eq('id', recordId);
+
+      if (error) throw error;
+      fetchData(); // Refresh UI
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status.");
+    }
+  }
+
+  async function deleteRecord(recordId, name) {
+    if (!confirm(`CRITICAL WARNING:\n\nAre you sure you want to permanently delete the registration for ${name}? This action cannot be undone.`)) return;
+    
+    // Double confirmation for safety
+    if (!confirm("Confirm Delete?")) return;
+
+    try {
+      const { error } = await db
+        .from('registrations')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) throw error;
+      fetchData(); // Refresh UI
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete record.");
+    }
+  }
+
+  // --- CSV Export ---
+  function exportCSV() {
+    if (globalData.length === 0) return alert("No data to export.");
+
+    // Define columns
+    const headers = ['Ticket Number', 'Full Name', 'Email', 'Phone', 'DOB', 'City', 'ID Type', 'Checked In Status', 'Registration Date'];
+    
+    // Map data to rows
+    const rows = globalData.map(a => [
+      a.ticket_number,
+      `"${a.full_name}"`, // Quote strings to prevent comma issues
+      a.email,
+      `"${a.phone}"`,
+      a.dob,
+      `"${a.city}"`,
+      a.id_type,
+      a.checked_in ? 'YES' : 'NO',
+      new Date(a.created_at).toLocaleString()
+    ]);
+
+    // Build CSV string
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `LEAMS_GuestList_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Utility
+  function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+</script>
+
+</body>
+</html>
