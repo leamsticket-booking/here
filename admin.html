@@ -284,11 +284,18 @@
     if (!confirm("Are you sure? This will instantly remove the photo from the projector screen and delete the file permanently.")) return;
 
     try {
-      // 1. Delete from Storage Bucket (CRITICAL: Prevents orphaned files)
-      // Extract the filename from the end of the URL
-      const fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+      // 1. Delete from Storage Bucket
+      // We must extract ONLY the filename from the URL to tell Supabase what to delete
+      // Example URL: .../memory-wall/1714856000-abcde.jpg
+      // Extracted: 1714856000-abcde.jpg
+      const urlParts = imageUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      
       const { error: storageErr } = await db.storage.from('memory-wall').remove([fileName]);
-      if (storageErr) console.warn("Notice: File might already be gone from storage.", storageErr);
+      
+      if (storageErr) {
+          console.warn("Storage warning: Could not delete file from bucket. It may already be deleted.", storageErr);
+      }
 
       // 2. Delete from Database
       const { error: dbErr } = await db.from('gallery').delete().eq('id', id);
@@ -296,12 +303,12 @@
 
       // Refresh the grid
       fetchGallery();
+      
     } catch (err) {
       console.error(err);
-      alert("Failed to delete photo.");
+      alert("Failed to delete photo from the database.");
     }
   }
-
 
   // ==========================================
   // GUEST LIST (TABLE) LOGIC
