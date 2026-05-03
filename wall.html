@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LEAMS Live Memory Wall</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; }
+
+  /* The actual image container */
+  .slide-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 2s ease-in-out; }
+  .slide-container.active { opacity: 1; z-index: 10; }
+
+  /* Cinematic Ken Burns Effect */
+  .slide-image { width: 100%; height: 100%; object-fit: cover; animation: kenBurns 15s infinite alternate linear; }
+  @keyframes kenBurns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-2%, -2%); }
+  }
+
+  /* Overlay for text readability */
+  .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0) 100%); }
+
+  /* Typography */
+  .brand-watermark { position: absolute; top: 3rem; left: 3rem; font-family: 'Cormorant Garamond', serif; color: rgba(212, 175, 55, 0.8); font-size: 2rem; letter-spacing: 0.2em; font-style: italic; z-index: 20; }
+  
+  .caption { position: absolute; bottom: 4rem; left: 4rem; z-index: 20; }
+  .guest-name { font-family: 'Cormorant Garamond', serif; color: #fff; font-size: 4rem; line-height: 1; margin-bottom: 0.5rem; text-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+  .event-tag { font-family: 'JetBrains Mono', monospace; color: #d4af37; font-size: 1rem; letter-spacing: 0.4em; text-transform: uppercase; }
+
+  /* Idle State */
+  .idle-state { font-family: 'Cormorant Garamond', serif; color: rgba(255,255,255,0.3); font-size: 2rem; font-style: italic; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div class="brand-watermark">LEAMS FAMILY MEET</div>
+<div class="idle-state" id="idleText">Waiting for memories...</div>
+
+<!-- Slides will be injected here -->
+<div id="slideshowArea"></div>
+
+<script>
+  // 🔐 SUPABASE CONFIG
+  const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let galleryPhotos = [];
+  let currentIndex = -1;
+  let slideInterval;
+
+  // 1. Fetch Photos from Database
+  async function fetchPhotos() {
+    try {
+      const { data, error } = await db.from('gallery').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      
+      // Only update if there are new photos
+      if (data.length > 0 && data.length !== galleryPhotos.length) {
+        galleryPhotos = data;
+        document.getElementById('idleText').style.display = 'none';
+        
+        // If slideshow isn't running, start it
+        if (currentIndex === -1) {
+          currentIndex = 0;
+          renderSlide();
+          slideInterval = setInterval(nextSlide, 8000); // Change slide every 8 seconds
+        }
+      }
+    } catch (err) { console.error("Error fetching photos", err); }
+  }
+
+  // 2. Render the Slide
+  function renderSlide() {
+    if (galleryPhotos.length === 0) return;
+    
+    const photo = galleryPhotos[currentIndex];
+    const area = document.getElementById('slideshowArea');
+
+    // Create new slide
+    const slide = document.createElement('div');
+    slide.className = 'slide-container';
+    slide.innerHTML = `
+      <img src="${photo.image_url}" class="slide-image">
+      <div class="overlay"></div>
+      <div class="caption">
+        <div class="guest-name">${photo.guest_name}</div>
+        <div class="event-tag">May 18 · Golden Palace</div>
+      </div>
+    `;
+
+    area.appendChild(slide);
+
+    // Trigger fade in
+    setTimeout(() => { slide.classList.add('active'); }, 50);
+
+    // Cleanup old slides so the browser doesn't crash from too many images
+    const oldSlides = area.querySelectorAll('.slide-container');
+    if (oldSlides.length > 2) {
+      oldSlides[0].remove();
+    }
+  }
+
+  // 3. Move to next slide
+  function nextSlide() {
+    currentIndex++;
+    if (currentIndex >= galleryPhotos.length) {
+      currentIndex = 0; // Loop back to the beginning
+    }
+    renderSlide();
+  }
+
+  // Initialize
+  fetchPhotos();
+  
+  // Check the database for new photos every 10 seconds!
+  setInterval(fetchPhotos, 10000);
+</script>
+</body>
+</html>

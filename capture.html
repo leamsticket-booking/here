@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>LEAMS Memory Wall</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --bg: #0a0a0a; --bg-card: #161616; --gold: #d4af37; --text: #f5f1e8; --border: rgba(212, 175, 55, 0.3); }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1.5rem; text-align: center; }
+  
+  .card { background: var(--bg-card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 0 40px rgba(212, 175, 55, 0.1); position: relative; }
+  h1 { font-family: 'Cormorant Garamond', serif; color: var(--gold); font-size: 2.2rem; margin-bottom: 0.5rem; font-style: italic; }
+  p { color: #9a9489; font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.5; }
+
+  /* Input section */
+  #nameSection { transition: all 0.3s; }
+  input[type="text"] { width: 100%; padding: 1rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); margin-bottom: 1.5rem; font-size: 1rem; box-sizing: border-box; }
+  input[type="text"]:focus { outline: none; border-color: var(--gold); }
+
+  /* Welcome Back Section */
+  #welcomeSection { display: none; margin-bottom: 1.5rem; padding: 1rem; border: 1px dashed var(--gold); background: rgba(212, 175, 55, 0.05); }
+  .welcome-text { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-bright); margin-bottom: 0.3rem; }
+  .change-user { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-dim); text-decoration: underline; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .upload-btn { display: block; width: 100%; padding: 1rem; background: transparent; border: 1px dashed var(--gold); color: var(--gold); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; cursor: pointer; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+  .upload-btn input[type="file"] { position: absolute; top: 0; left: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+  .submit-btn { width: 100%; padding: 1rem; background: var(--gold); color: var(--bg); border: none; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; cursor: pointer; }
+  .submit-btn:disabled { opacity: 0.5; }
+  
+  #preview { width: 100%; max-height: 300px; object-fit: cover; margin-bottom: 1.5rem; display: none; border: 1px solid var(--border); }
+  #status { margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+  <h1>Memory Wall</h1>
+  <p>Snap a photo with your family or friends to feature on the live event screen!</p>
+  
+  <!-- First Time User Section -->
+  <div id="nameSection">
+    <input type="text" id="guestNameInput" placeholder="Enter your name(s)..." required>
+  </div>
+
+  <!-- Returning User Section -->
+  <div id="welcomeSection">
+    <div class="welcome-text" id="welcomeName">Welcome back!</div>
+    <div class="change-user" onclick="resetUser()">Not you? Change name</div>
+  </div>
+  
+  <div class="upload-btn" id="uploadWrapper">
+    📸 Tap to Take Photo
+    <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="previewImage(event)">
+  </div>
+  
+  <img id="preview" src="" alt="Preview">
+
+  <button class="submit-btn" id="submitBtn" onclick="uploadMemory()">Send to Screen</button>
+  <div id="status"></div>
+</div>
+
+<script>
+  // 🔐 SUPABASE CONFIG
+  const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let selectedFile = null;
+  let currentGuestName = "";
+
+  // Check if we remember the user when the page loads
+  window.onload = () => {
+    const savedName = localStorage.getItem('leams_guest_name');
+    if (savedName) {
+      currentGuestName = savedName;
+      document.getElementById('nameSection').style.display = 'none';
+      document.getElementById('welcomeSection').style.display = 'block';
+      document.getElementById('welcomeName').textContent = `Ready for another, ${savedName}?`;
+    }
+  };
+
+  function resetUser() {
+    localStorage.removeItem('leams_guest_name');
+    currentGuestName = "";
+    document.getElementById('nameSection').style.display = 'block';
+    document.getElementById('welcomeSection').style.display = 'none';
+    document.getElementById('guestNameInput').value = '';
+  }
+
+  function previewImage(event) {
+    selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview').src = e.target.result;
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('uploadWrapper').innerHTML = 'Retake Photo <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="previewImage(event)">';
+      }
+      reader.readAsDataURL(selectedFile);
+    }
+  }
+
+  async function uploadMemory() {
+    // Determine the name to use
+    if (!currentGuestName) {
+      currentGuestName = document.getElementById('guestNameInput').value.trim();
+    }
+
+    if (!currentGuestName || !selectedFile) { 
+      alert("Please provide your name and snap a photo!"); 
+      return; 
+    }
+
+    const btn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+    btn.disabled = true;
+    btn.textContent = "Uploading...";
+
+    try {
+      // 1. Upload image to bucket
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const { error: uploadErr } = await db.storage.from('memory-wall').upload(fileName, selectedFile);
+      if (uploadErr) throw uploadErr;
+
+      // 2. Get Public URL
+      const { data: urlData } = db.storage.from('memory-wall').getPublicUrl(fileName);
+      
+      // 3. Save to database
+      const { error: dbErr } = await db.from('gallery').insert({ guest_name: currentGuestName, image_url: urlData.publicUrl });
+      if (dbErr) throw dbErr;
+
+      // 4. Save name to phone memory for next time
+      localStorage.setItem('leams_guest_name', currentGuestName);
+
+      // Success UI
+      document.getElementById('mainCard').innerHTML = `
+        <h1 style="font-size: 4rem; margin-bottom:0;">✓</h1>
+        <h1>Sent!</h1>
+        <p>Look up at the projector to see your photo.</p>
+        <button class="submit-btn" onclick="location.reload()">Take Another</button>
+      `;
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Upload failed. Please try again.";
+      btn.disabled = false;
+      btn.textContent = "Send to Screen";
+    }
+  }
+</script>
+</body>
+</html>
