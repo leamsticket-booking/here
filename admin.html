@@ -27,7 +27,6 @@
   .stat .l { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; }
   .stat .v { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--gold); margin-top: 0.2rem; line-height: 1; }
   
-  /* Progress Bar */
   .progress-bg { width: 100%; height: 6px; background: var(--bg-soft); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-strong); }
   .progress-fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.5s ease-out; }
 
@@ -61,6 +60,7 @@
   .search-box input { border-radius: 50px; padding-left: 1.5rem; border-color: var(--border-strong); }
   .toolbar-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
 
+  /* Table Styles */
   .table-container { background: var(--bg-card); border: 1px solid var(--border); overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; }
   th { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-mute); letter-spacing: 0.2em; text-transform: uppercase; padding: 1.5rem 1.5rem; border-bottom: 1px solid var(--border-strong); background: rgba(10,10,10,0.5); }
@@ -76,10 +76,17 @@
   .status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.4rem 0.8rem; border-radius: 50px; }
   .status.in { background: rgba(95, 217, 145, 0.1); color: var(--success); border: 1px solid rgba(95, 217, 145, 0.3); }
   .status.out { background: rgba(255, 179, 71, 0.1); color: var(--gold); border: 1px solid rgba(255, 179, 71, 0.3); }
-  
   .prize-badge { margin-top: 0.6rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.05em; color: var(--bg); background: var(--gold); padding: 0.3rem 0.6rem; border-radius: 3px; display: inline-block; font-weight: 600; }
-
   .actions { display: flex; gap: 0.5rem; }
+
+  /* Gallery Styles */
+  .gallery-container { display: none; }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2rem; margin-top: 2rem; }
+  .photo-card { background: var(--bg-card); border: 1px solid var(--border); padding: 1rem; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+  .photo-card img { width: 100%; height: 200px; object-fit: cover; border: 1px solid var(--border-strong); margin-bottom: 1rem; }
+  .photo-card .name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--gold); margin-bottom: 0.2rem; }
+  .photo-card .time { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 1rem; text-transform: uppercase; }
+
   .err-banner { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: var(--error); padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
 
   .loader { text-align: center; padding: 4rem; display: none; }
@@ -124,10 +131,12 @@
       <input type="text" id="searchInput" placeholder="Search by name, ticket, phone, or email..." onkeyup="filterTable()">
     </div>
     <div class="toolbar-actions">
+      <!-- NEW: Gallery Toggle Button -->
+      <button class="btn btn-ghost" id="galleryToggleBtn" onclick="toggleGalleryView()">🖼️ Manage Photos</button>
       <button class="btn btn-secondary" id="winnerToggleBtn" onclick="toggleWinners()">🏆 Show Winners</button>
       <button class="btn btn-danger" onclick="resetAllWinners()" style="display: none;" id="resetWinnersBtn">↻ Reset Winners</button>
       <button class="btn btn-ghost" onclick="fetchData()">↻ Refresh</button>
-      <button class="btn btn-primary" onclick="exportCSV()">↓ Export CSV</button>
+      <button class="btn btn-primary" id="exportBtn" onclick="exportCSV()">↓ Export CSV</button>
     </div>
   </div>
 
@@ -136,6 +145,7 @@
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase;">Syncing Database...</div>
   </div>
 
+  <!-- TABLE CONTAINER (Guest List) -->
   <div class="table-container" id="tableContainer">
     <table id="attendeeTable">
       <thead>
@@ -152,6 +162,15 @@
       </tbody>
     </table>
   </div>
+
+  <!-- GALLERY CONTAINER (Memory Wall Moderation) -->
+  <div class="gallery-container" id="galleryContainer">
+    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Memory Wall Moderation</h2>
+    <div class="photo-grid" id="photoGrid">
+      <!-- Photos populated by JS -->
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -166,6 +185,7 @@
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let globalData = [];
   let showingWinnersOnly = false;
+  let showingGallery = false;
 
   function checkLogin() {
     const pin = document.getElementById('pinInput').value;
@@ -193,21 +213,112 @@
     fetchData();
   }
 
+  // --- TAB TOGGLING ---
+  function toggleGalleryView() {
+    showingGallery = !showingGallery;
+    const gBtn = document.getElementById('galleryToggleBtn');
+    
+    if (showingGallery) {
+      gBtn.classList.replace('btn-ghost', 'btn-primary');
+      gBtn.textContent = '← Back to Guest List';
+      
+      document.getElementById('tableContainer').style.display = 'none';
+      document.getElementById('winnerToggleBtn').style.display = 'none';
+      document.getElementById('resetWinnersBtn').style.display = 'none';
+      document.getElementById('exportBtn').style.display = 'none';
+      document.getElementById('galleryContainer').style.display = 'block';
+      
+      fetchGallery(); // Load the photos
+    } else {
+      gBtn.classList.replace('btn-primary', 'btn-ghost');
+      gBtn.textContent = '🖼️ Manage Photos';
+      
+      document.getElementById('galleryContainer').style.display = 'none';
+      document.getElementById('winnerToggleBtn').style.display = 'inline-block';
+      document.getElementById('exportBtn').style.display = 'inline-block';
+      document.getElementById('tableContainer').style.display = 'block';
+      
+      if (showingWinnersOnly) document.getElementById('resetWinnersBtn').style.display = 'inline-block';
+      
+      fetchData(); // Load the guests
+    }
+  }
+
+  // ==========================================
+  // GALLERY MANAGEMENT LOGIC
+  // ==========================================
+  async function fetchGallery() {
+    document.getElementById('photoGrid').innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">Loading photos...</div>';
+    
+    try {
+      const { data, error } = await db.from('gallery').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      
+      const grid = document.getElementById('photoGrid');
+      grid.innerHTML = '';
+      
+      if (data.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">No photos uploaded yet.</div>';
+        return;
+      }
+
+      data.forEach(photo => {
+        const time = new Date(photo.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const div = document.createElement('div');
+        div.className = 'photo-card';
+        div.innerHTML = `
+          <img src="${photo.image_url}" loading="lazy">
+          <div class="name">${escapeHtml(photo.guest_name)}</div>
+          <div class="time">${time}</div>
+          <button class="btn btn-danger btn-small" style="width: 100%;" onclick="deletePhoto('${photo.id}', '${photo.image_url}')">Trash Photo</button>
+        `;
+        grid.appendChild(div);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Could not load photos.");
+    }
+  }
+
+  async function deletePhoto(id, imageUrl) {
+    if (!confirm("Are you sure? This will instantly remove the photo from the projector screen and delete the file permanently.")) return;
+
+    try {
+      // 1. Delete from Storage Bucket (CRITICAL: Prevents orphaned files)
+      // Extract the filename from the end of the URL
+      const fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+      const { error: storageErr } = await db.storage.from('memory-wall').remove([fileName]);
+      if (storageErr) console.warn("Notice: File might already be gone from storage.", storageErr);
+
+      // 2. Delete from Database
+      const { error: dbErr } = await db.from('gallery').delete().eq('id', id);
+      if (dbErr) throw dbErr;
+
+      // Refresh the grid
+      fetchGallery();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete photo.");
+    }
+  }
+
+
+  // ==========================================
+  // GUEST LIST (TABLE) LOGIC
+  // ==========================================
   async function fetchData() {
+    if (showingGallery) { fetchGallery(); return; }
+
     document.getElementById('tableContainer').style.display = 'none';
     document.getElementById('loader').style.display = 'block';
 
     try {
-      const { data, error } = await db
-        .from('registrations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await db.from('registrations').select('*').order('created_at', { ascending: false });
       if (error) throw error;
+      
       globalData = data;
-      filterTable(); // Renders table applying any active filters
+      filterTable(); 
       updateStats();
-
     } catch (err) {
       console.error(err);
       alert("Failed to sync with registry. Check connection.");
@@ -278,7 +389,6 @@
     document.getElementById('totalCount').textContent = total;
     document.getElementById('checkedCount').textContent = checkedIn;
     
-    // Update Progress Bar
     const percentage = total > 0 ? (checkedIn / total) * 100 : 0;
     document.getElementById('venueProgress').style.width = `${percentage}%`;
   }
@@ -318,8 +428,6 @@
     renderTable(filtered);
   }
 
-  // --- Database Actions ---
-
   async function toggleStatus(recordId, currentStatus) {
     const newStatus = !currentStatus;
     const confirmMsg = newStatus 
@@ -350,26 +458,20 @@
     } catch (err) { alert("Failed to delete record."); }
   }
 
-  // Feature: Clear Winners Data
   async function resetAllWinners() {
-    if (!confirm("Are you sure you want to clear the 'Prize Won' data from the database? This is useful for clearing test data before the real event.")) return;
+    if (!confirm("Are you sure you want to clear the 'Prize Won' data from the database?")) return;
 
     try {
-      // Find all current winners
       const winners = globalData.filter(a => a.prize_won);
       if (winners.length === 0) return alert("No winners to reset.");
 
       document.getElementById('resetWinnersBtn').textContent = "Clearing...";
-
-      // Update them one by one to remove the prize
       for (const winner of winners) {
         await db.from('registrations').update({ prize_won: null }).eq('id', winner.id);
       }
-
       alert("Winners data cleared successfully.");
       document.getElementById('resetWinnersBtn').textContent = "↻ Reset Winners";
       fetchData();
-
     } catch (err) {
       console.error(err);
       alert("Failed to reset winners.");
