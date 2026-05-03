@@ -79,7 +79,8 @@
     transition: all 0.3s; width: 100%;
   }
   .btn-primary { background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color: var(--bg); }
-  .btn-primary:hover { box-shadow: 0 10px 30px -10px rgba(212,175,55,0.5); }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 10px 30px -10px rgba(212,175,55,0.5); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
   .btn-secondary { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
   .btn-secondary:hover { background: var(--gold); color: var(--bg); }
   .btn-row { display: flex; gap: 1rem; }
@@ -101,20 +102,23 @@
   .result-card.success { border-color: var(--success); background: rgba(95, 217, 145, 0.05); }
   .result-card.warn { border-color: var(--warn); background: rgba(255, 179, 71, 0.05); }
   .result-card.error { border-color: var(--error); background: rgba(255, 107, 107, 0.05); }
+  .result-card.pending { border-color: var(--gold); background: rgba(212, 175, 55, 0.05); }
 
   .result-icon {
     width: 70px; height: 70px; border-radius: 50%; border: 2px solid;
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem; font-size: 2.2rem;
+    margin: 0 auto 1.5rem; font-size: 2.2rem; font-family: 'Inter', sans-serif;
   }
   .success .result-icon { border-color: var(--success); color: var(--success); box-shadow: 0 0 30px rgba(95,217,145,0.4); }
   .warn .result-icon { border-color: var(--warn); color: var(--warn); }
   .error .result-icon { border-color: var(--error); color: var(--error); }
+  .pending .result-icon { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 30px rgba(212,175,55,0.4); font-size: 2rem; }
 
   .result-title { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; text-align: center; margin-bottom: 0.5rem; }
   .success .result-title { color: var(--success); }
   .warn .result-title { color: var(--warn); }
   .error .result-title { color: var(--error); }
+  .pending .result-title { color: var(--gold); }
   .result-msg { text-align: center; color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
 
   .attendee-info {
@@ -204,14 +208,14 @@
   const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
 
-  // 🔐 Gate access PIN — change this to whatever you want
-  // (this is just basic gatekeeping, not high-security; the PIN lives in the file)
+  // 🔐 Gate access PIN
   const GATE_PIN = '142026';
   // ═══════════════════════════════════════════════════════════
 
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let html5QrCode = null;
   let scanCooldown = false;
+  let currentPendingAttendee = null; // Stores data while awaiting manual confirmation
 
   function checkLogin() {
     const pin = document.getElementById('pinInput').value;
@@ -304,22 +308,15 @@
         return;
       }
 
-      // Mark as checked in
-      const { error: updateErr } = await db
-        .from('registrations')
-        .update({ checked_in: true, checked_in_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      if (updateErr) throw updateErr;
-
+      // Feature Added: Pause at 'Pending' state for Physical ID Check
+      currentPendingAttendee = data;
       renderResult({
-        status: 'success',
-        title: 'Welcome ✓',
-        message: 'Verify face matches photo, then admit.',
+        status: 'pending',
+        title: 'Verify Identity',
+        message: 'Check that the physical ID matches the details and photo below.',
         attendee: data
       });
-      beep('ok');
-      loadStats();
+      beep('warn');
 
     } catch (err) {
       console.error(err);
@@ -327,9 +324,48 @@
     }
   }
 
+  async function confirmCheckIn() {
+    if (!currentPendingAttendee) return;
+    
+    const btn = document.getElementById('confirmBtn');
+    btn.textContent = 'Admitting...';
+    btn.disabled = true;
+
+    try {
+      const { error: updateErr } = await db
+        .from('registrations')
+        .update({ checked_in: true, checked_in_at: new Date().toISOString() })
+        .eq('id', currentPendingAttendee.id);
+
+      if (updateErr) throw updateErr;
+
+      // Update to Success state
+      renderResult({
+        status: 'success',
+        title: 'Admitted ✓',
+        message: 'Attendee has been verified and added to the Lucky Draw.',
+        attendee: currentPendingAttendee
+      });
+      
+      beep('ok');
+      loadStats();
+      currentPendingAttendee = null; // Clear the pending data
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to check in. Please check connection and try again.");
+      btn.textContent = 'Confirm & Admit';
+      btn.disabled = false;
+    }
+  }
+
   function renderResult({ status, title, message, attendee }) {
     const resultArea = document.getElementById('resultArea');
-    const icon = status === 'success' ? '✓' : status === 'warn' ? '!' : '✕';
+    
+    let icon = '✕';
+    if (status === 'success') icon = '✓';
+    else if (status === 'warn') icon = '!';
+    else if (status === 'pending') icon = '?';
 
     const maskedId = attendee && attendee.id_number
       ? (attendee.id_number.length > 4
@@ -350,19 +386,32 @@
       </div>
     ` : '';
 
+    let actionButtons = '';
+    if (status === 'pending') {
+      actionButtons = `
+        <div class="btn-row" style="margin-top: 1.5rem;">
+          <button class="btn btn-secondary" onclick="clearResult()">Cancel</button>
+          <button class="btn btn-primary" id="confirmBtn" onclick="confirmCheckIn()">Confirm & Admit</button>
+        </div>
+      `;
+    } else {
+      actionButtons = `<button class="btn btn-secondary" style="margin-top: 1.5rem;" onclick="clearResult()">Scan Next →</button>`;
+    }
+
     resultArea.innerHTML = `
       <div class="result-card ${status}">
         <div class="result-icon">${icon}</div>
         <div class="result-title">${title}</div>
         <div class="result-msg">${message}</div>
         ${attendeeBlock}
-        <button class="btn btn-secondary" onclick="clearResult()">Scan Next →</button>
+        ${actionButtons}
       </div>
     `;
     resultArea.scrollIntoView({ behavior: 'smooth' });
   }
 
   function clearResult() {
+    currentPendingAttendee = null;
     document.getElementById('resultArea').innerHTML = '';
     document.getElementById('manualTicket').value = '';
   }
