@@ -172,7 +172,7 @@
     try {
       const { data, error } = await db
         .from('registrations')
-        .select('full_name, ticket_number, photo_url')
+        .select('id, full_name, ticket_number, photo_url') // Added 'id' to the select query
         .eq('checked_in', true);
 
       if (error) throw error;
@@ -189,11 +189,11 @@
       document.getElementById('status-text').textContent = "Error connecting. (Using Demo Data)";
       // Fallback Data
       attendees = [
-        { full_name: "Muhammed Razik", ticket_number: "LFM-2026-001", photo_url: "https://i.pravatar.cc/300?img=11" },
-        { full_name: "Shavaf Shamsudheen", ticket_number: "LFM-2026-042", photo_url: "https://i.pravatar.cc/300?img=12" },
-        { full_name: "Sayuj", ticket_number: "LFM-2026-089", photo_url: "https://i.pravatar.cc/300?img=13" },
-        { full_name: "Jamnaz", ticket_number: "LFM-2026-105", photo_url: "https://i.pravatar.cc/300?img=14" },
-        { full_name: "Sreekuttan O", ticket_number: "LFM-2026-112", photo_url: "https://i.pravatar.cc/300?img=15" }
+        { id: "1", full_name: "Muhammed Razik", ticket_number: "LFM-2026-001", photo_url: "https://i.pravatar.cc/300?img=11" },
+        { id: "2", full_name: "Shavaf Shamsudheen", ticket_number: "LFM-2026-042", photo_url: "https://i.pravatar.cc/300?img=12" },
+        { id: "3", full_name: "Sayuj", ticket_number: "LFM-2026-089", photo_url: "https://i.pravatar.cc/300?img=13" },
+        { id: "4", full_name: "Jamnaz", ticket_number: "LFM-2026-105", photo_url: "https://i.pravatar.cc/300?img=14" },
+        { id: "5", full_name: "Sreekuttan O", ticket_number: "LFM-2026-112", photo_url: "https://i.pravatar.cc/300?img=15" }
       ];
     }
   }
@@ -243,7 +243,6 @@
   }
 
   // Generate Winner Card HTML
-  // isMini shrinks the card slightly so 2nd prize fits nicely next to each other
   function createWinnerCard(winnerData, isMini = false) {
     const photo = winnerData.photo_url || 'https://via.placeholder.com/250/0a0a0a/d4af37?text=LEAMS';
     const photoSize = isMini ? '160px' : '230px';
@@ -266,6 +265,16 @@
     return attendees.splice(index, 1)[0]; 
   }
 
+  // Helper to save winner to database
+  async function saveWinnerToDB(recordId, prizeName) {
+    // If it's a demo data ID (just a number like "1"), skip the real DB call to prevent errors
+    if (!recordId || recordId.length < 5) return; 
+    
+    try {
+      await db.from('registrations').update({ prize_won: prizeName }).eq('id', recordId);
+    } catch(err) { console.error("Failed to save winner to database", err); }
+  }
+
   // Reveal Phase Winners
   function revealWinner() {
     clearInterval(shuffleInterval);
@@ -284,6 +293,9 @@
       document.getElementById('winner-title').textContent = "✦ 1st Prize Winner ✦";
       container.innerHTML = createWinnerCard(firstPrizeWinner);
       
+      // Save 1st Prize to DB
+      saveWinnerToDB(firstPrizeWinner.id, '1st Prize');
+      
       nextBtn.textContent = "Proceed to 2nd Prize Draw →";
       nextBtn.onclick = prepareSecondDraw;
       nextBtn.style.display = 'inline-block';
@@ -293,8 +305,12 @@
       secondPrizeWinners = [pullRandomWinner(), pullRandomWinner()];
       document.getElementById('winner-title').textContent = "✦ 2nd Prize Winners ✦";
       
-      // Render as mini cards to fit side-by-side perfectly
+      // Render as mini cards
       container.innerHTML = createWinnerCard(secondPrizeWinners[0], true) + createWinnerCard(secondPrizeWinners[1], true);
+      
+      // Save 2nd Prizes to DB
+      saveWinnerToDB(secondPrizeWinners[0].id, '2nd Prize');
+      saveWinnerToDB(secondPrizeWinners[1].id, '2nd Prize');
       
       nextBtn.textContent = "View Grand Finale →";
       nextBtn.onclick = showFinalScreen;
