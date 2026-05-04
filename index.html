@@ -664,6 +664,44 @@
     emailjs.init(EMAILJS_PUBLIC_KEY);
   }
 
+  // 🟢 LIVE REGISTRATION STATUS CHECKER
+  async function checkRegistrationStatus() {
+    if (!isConfigured) return;
+    try {
+      const { data, error } = await db.from('event_settings').select('registration_open').eq('id', 1).single();
+      
+      // If registration is CLOSED (false)
+      if (data && data.registration_open === false) {
+        
+        // 1. Lock the booking form area
+        const bookingCard = document.querySelector('.booking-card');
+        if (bookingCard) {
+          bookingCard.innerHTML = `
+            <div style="text-align:center; padding: 4rem 2rem;">
+              <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; color: var(--error); margin-bottom:1rem; font-style: italic;">Registrations Closed</h2>
+              <p style="color: var(--text-dim); line-height: 1.6; max-width: 400px; margin: 0 auto;">We have reached full capacity for the LEAMS Family Meet. Thank you for your overwhelming response!</p>
+            </div>
+          `;
+        }
+
+        // 2. Change all the "Reserve Free Pass" buttons on the website to disabled
+        document.querySelectorAll('.btn-primary, .nav-cta').forEach(btn => {
+          if (btn.textContent.includes('Reserve') || btn.textContent.includes('Get Pass')) {
+            btn.textContent = 'Tickets Sold Out';
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.onclick = (e) => { e.preventDefault(); return false; }; // Disable the click completely
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Could not check portal status", err);
+    }
+  }
+
+  // Run the check instantly when the page loads!
+  checkRegistrationStatus();
+
   let formData = {};
   let idFile = null;
   let photoFile = null;
