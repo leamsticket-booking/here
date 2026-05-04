@@ -7,9 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
 <style>
   :root {
     --bg: #0a0a0a;
@@ -33,43 +37,29 @@
   body { position: relative; min-height: 100vh; }
 
   body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(212, 175, 55, 0.06), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 0% 80%, rgba(212, 175, 55, 0.04), transparent 60%);
-    pointer-events: none;
-    z-index: 0;
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(212, 175, 55, 0.06), transparent 60%),
+                radial-gradient(ellipse 60% 40% at 0% 80%, rgba(212, 175, 55, 0.04), transparent 60%);
+    pointer-events: none; z-index: 0;
   }
   body::after {
-    content: '';
-    position: fixed; inset: 0;
+    content: ''; position: fixed; inset: 0;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 0;
-    mix-blend-mode: overlay;
+    opacity: 0.04; pointer-events: none; z-index: 0; mix-blend-mode: overlay;
   }
 
   .grain { position: relative; z-index: 1; }
 
   nav {
-    position: fixed; top: 0; left: 0; right: 0;
-    padding: 1.5rem 3rem;
+    position: fixed; top: 0; left: 0; right: 0; padding: 1.5rem 3rem;
     display: flex; justify-content: space-between; align-items: center;
-    z-index: 100;
-    backdrop-filter: blur(20px);
-    background: rgba(10, 10, 10, 0.7);
-    border-bottom: 1px solid var(--border);
+    z-index: 100; backdrop-filter: blur(20px); background: rgba(10, 10, 10, 0.7); border-bottom: 1px solid var(--border);
   }
   .logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem; font-weight: 500; letter-spacing: 0.18em;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase; background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     display: flex; align-items: center; gap: 0.7rem;
   }
   .logo-mark { width: 28px; height: 28px; border: 1px solid var(--gold); transform: rotate(45deg); position: relative; }
@@ -84,73 +74,50 @@
   }
   .nav-cta:hover { background: var(--gold); color: var(--bg); box-shadow: 0 0 30px var(--gold-glow); }
 
-  .hero {
-    min-height: 100vh; display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem;
-    padding: 9rem 3rem 4rem; align-items: center; position: relative;
-  }
+  .hero { min-height: 100vh; display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; padding: 9rem 3rem 4rem; align-items: center; position: relative; }
   .hero-tag {
     font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.4em; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;
-    opacity: 0; animation: fadeUp 1s 0.2s forwards;
+    color: var(--gold); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; opacity: 0; animation: fadeUp 1s 0.2s forwards;
   }
   .hero-tag::before { content: ''; width: 40px; height: 1px; background: var(--gold); }
 
   h1.hero-title {
     font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 6.5vw, 6.5rem);
-    font-weight: 400; line-height: 0.95; letter-spacing: -0.02em; margin-bottom: 2rem;
-    opacity: 0; animation: fadeUp 1.2s 0.4s forwards;
+    font-weight: 400; line-height: 0.95; letter-spacing: -0.02em; margin-bottom: 2rem; opacity: 0; animation: fadeUp 1.2s 0.4s forwards;
   }
-  h1.hero-title .gold {
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-deep) 100%);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-style: italic;
-  }
+  h1.hero-title .gold { background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-deep) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; }
   h1.hero-title .line { display: block; }
 
   .hero-desc { font-size: 1.05rem; line-height: 1.7; color: var(--text-dim); max-width: 480px; margin-bottom: 3rem; font-weight: 300; opacity: 0; animation: fadeUp 1s 0.6s forwards; }
 
   .hero-meta {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
-    padding: 2rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-    margin-bottom: 2.5rem; opacity: 0; animation: fadeUp 1s 0.8s forwards;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 2rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; opacity: 0; animation: fadeUp 1s 0.8s forwards;
   }
   .meta-item .label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.5rem; }
   .meta-item .val { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); }
 
   .hero-cta { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 1s 1s forwards; }
   .btn-primary {
-    padding: 1.2rem 2.5rem;
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
-    color: var(--bg); border: none;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 500;
-    cursor: pointer; position: relative; transition: all 0.4s;
-    box-shadow: 0 10px 40px -10px var(--gold-glow);
-    text-decoration: none; display: inline-block;
+    padding: 1.2rem 2.5rem; background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--gold-deep));
+    color: var(--bg); border: none; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 500; cursor: pointer; position: relative; transition: all 0.4s; box-shadow: 0 10px 40px -10px var(--gold-glow); text-decoration: none; display: inline-block;
   }
   .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 60px -10px var(--gold-glow); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-ghost {
-    padding: 1.2rem 0; background: transparent; color: var(--text); border: none;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase;
-    cursor: pointer; border-bottom: 1px solid var(--text-mute); transition: all 0.3s;
-    text-decoration: none; display: inline-block;
+    padding: 1.2rem 0; background: transparent; color: var(--text); border: none; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; border-bottom: 1px solid var(--text-mute); transition: all 0.3s; text-decoration: none; display: inline-block;
   }
   .btn-ghost:hover { color: var(--gold); border-color: var(--gold); }
+  
+  .btn-share { padding: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 
   .hero-visual { position: relative; height: 600px; opacity: 0; animation: fadeIn 1.5s 0.8s forwards; }
   .ticket-preview {
-    position: absolute; top: 50%; left: 50%; width: 380px; height: 540px;
-    transform: translate(-50%, -50%) rotate(-6deg);
-    background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid var(--border-strong); padding: 2rem;
-    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8), 0 0 60px -20px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.05);
-    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: absolute; top: 50%; left: 50%; width: 380px; height: 540px; transform: translate(-50%, -50%) rotate(-6deg);
+    background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%); border: 1px solid var(--border-strong); padding: 2rem;
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8), 0 0 60px -20px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.05); transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .ticket-preview:hover { transform: translate(-50%, -50%) rotate(-2deg) scale(1.03); }
-  .ticket-preview::before {
-    content: ''; position: absolute; inset: 0;
-    background: radial-gradient(circle at 0 50%, var(--bg) 12px, transparent 13px), radial-gradient(circle at 100% 50%, var(--bg) 12px, transparent 13px);
-    pointer-events: none;
-  }
+  .ticket-preview::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 0 50%, var(--bg) 12px, transparent 13px), radial-gradient(circle at 100% 50%, var(--bg) 12px, transparent 13px); pointer-events: none; }
   .tp-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
   .tp-brand { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--gold); font-size: 1.15rem; letter-spacing: 0.15em; }
   .tp-no { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-mute); letter-spacing: 0.15em; }
@@ -189,11 +156,7 @@
   .highlight-icon svg { width: 100%; height: 100%; stroke: var(--gold); fill: none; stroke-width: 1; }
 
   .programme-list { border: 1px solid var(--border); }
-  .prog-row {
-    display: grid; grid-template-columns: 200px 1fr auto;
-    gap: 2rem; align-items: center; padding: 2rem 2.5rem;
-    border-bottom: 1px solid var(--border); transition: background 0.3s;
-  }
+  .prog-row { display: grid; grid-template-columns: 200px 1fr auto; gap: 2rem; align-items: center; padding: 2rem 2.5rem; border-bottom: 1px solid var(--border); transition: background 0.3s; }
   .prog-row:last-child { border-bottom: none; }
   .prog-row:hover { background: var(--bg-soft); }
   .prog-time { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.15em; }
@@ -203,11 +166,7 @@
   .prog-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; }
 
   .booking-section { background: linear-gradient(180deg, transparent, var(--bg-soft) 50%, transparent); }
-  .booking-card {
-    max-width: 720px; margin: 0 auto; background: var(--bg-card);
-    border: 1px solid var(--border-strong); padding: 3.5rem 4rem; position: relative;
-    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5), 0 0 80px -30px var(--gold-glow);
-  }
+  .booking-card { max-width: 720px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-strong); padding: 3.5rem 4rem; position: relative; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5), 0 0 80px -30px var(--gold-glow); }
   .booking-card::before, .booking-card::after { content: ''; position: absolute; width: 30px; height: 30px; border: 1px solid var(--gold); }
   .booking-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
   .booking-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
@@ -215,11 +174,7 @@
   .stepper { display: flex; justify-content: space-between; margin-bottom: 3rem; position: relative; }
   .stepper::before { content: ''; position: absolute; top: 16px; left: 5%; right: 5%; height: 1px; background: var(--border); z-index: 0; }
   .step { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; position: relative; z-index: 1; }
-  .step-circle {
-    width: 32px; height: 32px; border: 1px solid var(--border-strong); background: var(--bg-card);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-mute); transition: all 0.4s;
-  }
+  .step-circle { width: 32px; height: 32px; border: 1px solid var(--border-strong); background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-mute); transition: all 0.4s; }
   .step.active .step-circle { background: var(--gold); color: var(--bg); border-color: var(--gold); box-shadow: 0 0 20px var(--gold-glow); }
   .step.done .step-circle { background: transparent; color: var(--gold); border-color: var(--gold); }
   .step-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-mute); text-transform: uppercase; transition: color 0.4s; }
@@ -234,13 +189,8 @@
   .field { margin-bottom: 1.8rem; }
   .field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.6rem; }
   .field label .req { color: var(--gold); }
-  .field input, .field select, .field textarea {
-    width: 100%; padding: 1rem 1.2rem; background: var(--bg); border: 1px solid var(--border);
-    color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-  }
+  .field input, .field select, .field textarea { width: 100%; padding: 1rem 1.2rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 
   .upload-zone { border: 1px dashed var(--border-strong); padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--bg); position: relative; }
@@ -268,8 +218,7 @@
   #ticket-render {
     background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%);
     width: 100%; max-width: 580px; margin: 2rem auto; padding: 2.5rem;
-    border: 1px solid var(--gold);
-    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+    border: 1px solid var(--gold); box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
     position: relative; color: var(--text); font-family: 'Inter', sans-serif; text-align: left;
   }
   .tk-top { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
@@ -386,9 +335,9 @@
 </head>
 <body>
 
-<!-- Config warning - shows if Supabase not configured -->
+<!-- Config warning - shows if Supabase/EmailJS not configured -->
 <div id="configBanner" class="config-banner" style="display:none;">
-  ⚠ SUPABASE NOT CONFIGURED — Edit lines at the top of the script section to add your credentials
+  ⚠ SUPABASE OR EMAILJS NOT CONFIGURED — Edit lines at the top of the script section to add your credentials
 </div>
 
 <div class="grain">
@@ -590,7 +539,7 @@
       <div class="ticket-result">
         <div class="success-mark">✓</div>
         <h2>Your seat is <span class="it">reserved.</span></h2>
-        <p class="step-desc" style="text-align: center; max-width: 460px; margin: 0.5rem auto 0;">Your verified pass is below. Save it and present at the venue entry. A copy has also been sent to your email.</p>
+        <p class="step-desc" id="success-desc" style="text-align: center; max-width: 460px; margin: 0.5rem auto 0;">Your verified pass is below. Save it and present at the venue entry. A copy is being sent to your email.</p>
 
         <div id="ticket-render">
           <div class="tk-top">
@@ -627,6 +576,14 @@
 
         <div class="download-actions">
           <button class="btn-primary" onclick="downloadTicket()">↓ Download Ticket</button>
+          <button class="btn-ghost btn-share" onclick="shareWhatsApp()">
+            <svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.195 1.597 6.012L.152 23.3l5.426-1.425a11.968 11.968 0 0 0 6.453 1.884h.004c6.645 0 12.03-5.386 12.03-12.031C24.066 5.386 18.68 0 12.03 0zm0 21.758a9.982 9.982 0 0 1-5.093-1.385l-.364-.216-3.784.993.996-3.69-.238-.378A9.974 9.974 0 0 1 2.003 12.03c0-5.535 4.5-10.035 10.033-10.035s10.032 4.5 10.032 10.035c0 5.535-4.502 10.035-10.036 10.035zm5.503-7.519c-.302-.15-1.787-.88-2.063-.982-.276-.101-.477-.15-.678.15-.201.301-.78 1.006-.954 1.206-.175.201-.35.226-.653.076-.301-.15-1.275-.47-2.43-1.5-1.127-.92-1.888-2.053-2.113-2.353-.225-.301-.024-.464.126-.615.136-.135.302-.351.452-.527.151-.176.201-.301.302-.502.101-.201.05-.377-.025-.528-.076-.15-1.787-4.305-2.447-5.892-.644-1.55-1.298-1.341-1.788-1.366-.475-.025-1.028-.025-1.581-.025s-1.458.201-2.21 1.056c-.754.855-2.865 2.8-2.865 6.828 0 4.027 2.932 7.915 3.333 8.45.402.535 5.765 8.795 13.972 12.333 1.956.84 3.483 1.342 4.673 1.72 1.96.618 3.743.532 5.15.32 1.572-.236 4.825-1.97 5.504-3.873.678-1.902.678-3.53.477-3.873-.201-.344-.754-.545-1.357-.846z"/></svg>
+            WhatsApp
+          </button>
+          <button class="btn-ghost btn-share" onclick="nativeShare()">
+            <svg style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+            Share Link
+          </button>
         </div>
       </div>
     </div>
@@ -681,12 +638,15 @@
 
 <script>
   // ═══════════════════════════════════════════════════════════
-  // 🔐 SUPABASE CONFIGURATION — REPLACE THESE TWO VALUES
+  // 🔐 SUPABASE & EMAILJS CONFIGURATION
   // ═══════════════════════════════════════════════════════════
-  // Get these from your Supabase project dashboard:
-  // → Project Settings → API → Project URL & anon/public key
   const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
+
+  // EmailJS Credentials - Replace with your actual credentials from emailjs.com
+  const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY'; 
+  const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
+  const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';
   // ═══════════════════════════════════════════════════════════
 
   let db = null;
@@ -697,6 +657,11 @@
   } else {
     document.getElementById('configBanner').style.display = 'block';
     document.body.style.paddingTop = '40px';
+  }
+
+  // Initialize EmailJS
+  if (EMAILJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY') {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
   }
 
   let formData = {};
@@ -752,22 +717,23 @@
       if (!dob) return showAlert('Please select your date of birth.');
       if (!city) return showAlert('Please enter your city.');
 
-      // Check duplicate email in database
+      // STRICT VALIDATION: Check duplicate email OR phone in database
       if (isConfigured) {
-        showLoader('Checking registration...');
-        const { data, error } = await db
-          .from('registrations')
-          .select('ticket_number')
-          .eq('email', email)
-          .maybeSingle();
+        showLoader('Checking registration data...');
+        
+        // Querying individually ensures no parsing errors with special characters (+, spaces)
+        const { data: emailData, error: emailError } = await db.from('registrations').select('ticket_number').eq('email', email);
+        const { data: phoneData, error: phoneError } = await db.from('registrations').select('ticket_number').eq('phone', phone);
+        
         hideLoader();
 
-        if (error) {
-          console.error(error);
-          return showAlert('Could not verify. Please try again.');
+        if (emailError || phoneError) {
+          console.error("Verification Error");
+          return showAlert('Could not verify connection. Please try again.');
         }
-        if (data) {
-          return showAlert('This email already has a ticket. One person, one pass.');
+
+        if ((emailData && emailData.length > 0) || (phoneData && phoneData.length > 0)) {
+          return showAlert('This Email or Phone Number has already been registered. One pass per person.');
         }
       }
 
@@ -784,7 +750,6 @@
       if (!idFile) return showAlert('Please upload your ID document.');
       if (!consent) return showAlert('Please confirm the verification consent.');
 
-      // Check duplicate ID in database
       if (isConfigured) {
         showLoader('Verifying ID...');
         const idHash = await hashString(idType + ':' + idNumber.toLowerCase());
@@ -837,7 +802,6 @@
     reader.readAsDataURL(file);
   }
 
-  // Hash ID number for privacy (so we don't store raw IDs in plain query columns)
   async function hashString(str) {
     const buf = new TextEncoder().encode(str);
     const hash = await crypto.subtle.digest('SHA-256', buf);
@@ -846,7 +810,6 @@
 
   async function submitRegistration() {
     if (!isConfigured) {
-      // Demo mode fallback
       showAlert('Demo mode: configure Supabase to actually save data.', 'info');
       generateTicketLocal();
       setStep(4);
@@ -859,19 +822,19 @@
     try {
       const idHash = await hashString(formData.idType + ':' + formData.idNumber.toLowerCase());
 
-      // 1. Upload photo to Supabase Storage
+      // 1. Upload photo to Supabase Storage (Public Bucket)
       showLoader('Uploading photo...');
       const photoExt = photoFile.name.split('.').pop().toLowerCase();
       const photoPath = `photos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${photoExt}`;
       const { error: photoErr } = await db.storage.from('attendee-files').upload(photoPath, photoFile);
       if (photoErr) throw new Error('Photo upload failed: ' + photoErr.message);
 
-      // 2. Upload ID to Supabase Storage
-      showLoader('Uploading ID...');
+      // 2. Upload ID to Supabase Storage (CRITICAL SECURITY FIX: Upload to 'private-ids' bucket)
+      showLoader('Securing ID Document...');
       const idExt = idFile.name.split('.').pop().toLowerCase();
       const idPath = `ids/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${idExt}`;
-      const { error: idErr } = await db.storage.from('attendee-files').upload(idPath, idFile);
-      if (idErr) throw new Error('ID upload failed: ' + idErr.message);
+      const { error: idErr } = await db.storage.from('private-ids').upload(idPath, idFile);
+      if (idErr) throw new Error('ID upload failed. Ensure "private-ids" bucket exists: ' + idErr.message);
 
       // 3. Get public photo URL for ticket display
       const { data: photoUrlData } = db.storage.from('attendee-files').getPublicUrl(photoPath);
@@ -899,14 +862,30 @@
         .single();
 
       if (insertErr) {
-        if (insertErr.code === '23505') throw new Error('This email or ID is already registered.');
+        if (insertErr.code === '23505') throw new Error('This email, phone, or ID is already registered.');
         throw new Error('Registration failed: ' + insertErr.message);
       }
 
-      // 5. Build ticket using server-assigned ticket number
       formData.ticketNumber = insertData.ticket_number;
       formData.photoUrl = photoUrl;
       formData.recordId = insertData.id;
+
+      // 5. Send automated email via EmailJS
+      if (EMAILJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY') {
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_name: formData.fullName,
+            to_email: formData.email,
+            ticket_number: formData.ticketNumber,
+            event_date: "18 May 2026",
+            event_time: "4:30 PM",
+            venue: "Golden Palace International Convention Centre"
+          });
+        } catch (emailErr) {
+          console.error("Email failed to send", emailErr);
+          document.getElementById('success-desc').innerText = "Your verified pass is below. Save it and present at the venue entry. (Note: Automated email receipt failed to send).";
+        }
+      }
 
       renderTicket();
       setStep(4);
@@ -928,10 +907,7 @@
     document.getElementById('tk-id').textContent = `${formData.idType} · ${maskedId}`;
     document.getElementById('tk-photo-img').src = formData.photoUrl || URL.createObjectURL(photoFile);
 
-    // QR contains ONLY the ticket number — gate scanner looks it up in DB
-    // (much safer than embedding raw ID/email)
     const qrPayload = formData.ticketNumber;
-
     const qrContainer = document.getElementById('qr-code');
     qrContainer.innerHTML = '';
     new QRCode(qrContainer, {
@@ -948,6 +924,7 @@
     renderTicket();
   }
 
+  // --- Sharing & Download Capabilities ---
   function downloadTicket() {
     const ticket = document.getElementById('ticket-render');
     const btn = event.target;
@@ -970,6 +947,25 @@
         btn.textContent = originalText;
         btn.disabled = false;
       });
+  }
+
+  function shareWhatsApp() {
+    const shareText = `I just reserved my pass for the LEAMS Family Meet 2026! 🎟️✨\n\nTicket: ${formData.ticketNumber}\nDate: 18 May 2026\nVenue: Golden Palace\n\nReserve yours here: ${window.location.href}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  }
+
+  function nativeShare() {
+    const shareData = {
+      title: 'LEAMS Family Meet 2026',
+      text: `I just reserved my pass for the LEAMS Family Meet 2026! 🎟️✨ Get your pass too!`,
+      url: window.location.href
+    };
+    if (navigator.share) {
+      navigator.share(shareData).catch(err => console.error('Share error:', err));
+    } else {
+      showAlert('Native sharing is not supported on this browser. Try WhatsApp!', 'info');
+    }
   }
 </script>
 
