@@ -89,9 +89,9 @@
   .photo-card .time { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 1rem; text-transform: uppercase; }
 
   /* Settings Styles */
-  .settings-container { display: none; max-width: 800px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); padding: 3rem; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+  .settings-container { display: none; max-width: 600px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); padding: 3rem; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; }
   .settings-container h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); margin-bottom: 2rem; border-bottom: 1px dashed var(--border); padding-bottom: 1rem; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+  .field { margin-bottom: 2rem; text-align: left; }
   .field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 0.5rem; }
 
   .err-banner { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: var(--error); padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
@@ -104,10 +104,7 @@
 <body>
 
 <div class="header">
-  <div class="logo">
-    LEAMS
-    <div class="sub">Command Center · Dashboard</div>
-  </div>
+  <div class="logo">LEAMS<div class="sub">Command Center · Dashboard</div></div>
   <div class="stats-container" id="statsBar" style="display: none;">
     <div class="stats">
       <div class="stat"><div class="l">Checked In</div><div class="v" id="checkedCount">0</div></div>
@@ -117,29 +114,23 @@
   </div>
 </div>
 
-<!-- Login View -->
 <div class="login-wrapper" id="loginView">
   <div class="login-card">
     <h2>Admin <span class="it">access.</span></h2>
     <p class="desc">Enter the master administrative PIN to view the guest list and manage attendees.</p>
     <div id="loginErr"></div>
-    <div style="margin-bottom: 1.5rem;">
-      <input type="password" id="pinInput" placeholder="••••••" autofocus>
-    </div>
+    <div style="margin-bottom: 1.5rem;"><input type="password" id="pinInput" placeholder="••••••" autofocus></div>
     <button class="btn btn-primary" style="width: 100%;" onclick="checkLogin()">Unlock Dashboard</button>
   </div>
 </div>
 
-<!-- Main Dashboard View -->
 <div class="main" id="dashboardView">
   
   <div class="toolbar">
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search by name, ticket, phone, or email..." onkeyup="filterTable()">
-    </div>
+    <div class="search-box"><input type="text" id="searchInput" placeholder="Search by name, ticket, phone, or email..." onkeyup="filterTable()"></div>
     <div class="toolbar-actions">
-      <!-- NEW: Event Settings Toggle Button -->
-      <button class="btn btn-ghost" id="settingsToggleBtn" onclick="toggleSettingsView()">⚙️ Event Settings</button>
+      <!-- Event Settings Toggle Button -->
+      <button class="btn btn-ghost" id="settingsToggleBtn" onclick="toggleSettingsView()">⚙️ Ticket Settings</button>
       <button class="btn btn-ghost" id="galleryToggleBtn" onclick="toggleGalleryView()">🖼️ Manage Photos</button>
       <button class="btn btn-secondary" id="winnerToggleBtn" onclick="toggleWinners()">🏆 Show Winners</button>
       <button class="btn btn-danger" onclick="resetAllWinners()" style="display: none;" id="resetWinnersBtn">↻ Reset Winners</button>
@@ -147,455 +138,164 @@
     </div>
   </div>
 
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase;" id="loaderText">Syncing Database...</div>
-  </div>
+  <div class="loader" id="loader"><div class="spinner"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase;" id="loaderText">Syncing Database...</div></div>
 
-  <!-- VIEW 1: TABLE CONTAINER (Guest List) -->
+  <!-- TABLE CONTAINER (Guest List) -->
   <div class="table-container" id="tableContainer">
     <table id="attendeeTable">
-      <thead>
-        <tr>
-          <th>Attendee</th>
-          <th>Ticket & ID Info</th>
-          <th>Contact</th>
-          <th>Status & Prize</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <!-- Rows populated by JS -->
-      </tbody>
+      <thead><tr><th>Attendee</th><th>Ticket & ID Info</th><th>Contact</th><th>Status & Prize</th><th>Actions</th></tr></thead>
+      <tbody id="tableBody"></tbody>
     </table>
   </div>
 
-  <!-- VIEW 2: GALLERY CONTAINER (Memory Wall Moderation) -->
+  <!-- GALLERY CONTAINER -->
   <div class="gallery-container" id="galleryContainer">
     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Memory Wall Moderation</h2>
     <div class="photo-grid" id="photoGrid"></div>
   </div>
 
-  <!-- VIEW 3: SETTINGS CONTAINER (Event Configuration) -->
+  <!-- SETTINGS CONTAINER (Open/Close Registration) -->
   <div class="settings-container" id="settingsContainer">
-    <h2>Event Configuration</h2>
-    <div style="margin-bottom: 2rem; color: var(--text-dim); font-size: 0.9rem;">Changes made here will instantly update the details on the public registration website.</div>
+    <h2>Ticket Controls</h2>
+    <p style="color: var(--text-dim); margin-bottom: 2rem;">Use this switch to instantly open or close the ticket booking portal on the live website.</p>
     
-    <div class="field-row">
-      <div class="field">
-        <label>Event Date</label>
-        <input type="text" id="set_date" placeholder="e.g. 18 May 2026">
-      </div>
-      <div class="field">
-        <label>Doors Open Time</label>
-        <input type="text" id="set_time" placeholder="e.g. 4:30 PM">
-      </div>
-    </div>
-    
-    <div class="field-row">
-      <div class="field">
-        <label>Venue Name</label>
-        <input type="text" id="set_venue" placeholder="e.g. Golden Palace">
-      </div>
-      <div class="field">
-        <label>Venue City / Location</label>
-        <input type="text" id="set_location" placeholder="e.g. Trivandrum · Kerala">
-      </div>
-    </div>
-    
-    <div class="field-row" style="grid-template-columns: 1fr;">
-      <div class="field">
-        <label>Registration Status (Turn off to stop new bookings)</label>
-        <select id="set_status">
-          <option value="true">🟢 Open - Accepting Registrations</option>
-          <option value="false">🔴 Closed - No New Registrations</option>
-        </select>
-      </div>
+    <div class="field">
+      <label>Portal Status</label>
+      <select id="set_status" style="font-size: 1.1rem; padding: 1rem; text-align: center;">
+        <option value="true">🟢 OPEN - Accepting Registrations</option>
+        <option value="false">🔴 CLOSED - Stop New Registrations</option>
+      </select>
     </div>
 
-    <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%; margin-top: 1rem;" onclick="saveEventSettings()">Save Changes to Live Site</button>
+    <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%; margin-top: 1rem;" onclick="saveEventSettings()">Update Live Site</button>
   </div>
 
 </div>
 
 <script>
-  // ═══════════════════════════════════════════════════════════
-  // 🔐 SUPABASE CONFIG
-  // ═══════════════════════════════════════════════════════════
+  // 🔐 SUPABASE CONFIG 
   const SUPABASE_URL = 'https://mysciycgzusrewdolqba.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15c2NpeWNnenVzcmV3ZG9scWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjQ0MDIsImV4cCI6MjA5MzIwMDQwMn0.iAwY2CrcEirFCjI69sD-yauhZZ7vX4Jl1FO74ho8OXk';
   const ADMIN_PIN = '999999'; 
-  // ═══════════════════════════════════════════════════════════
 
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let globalData = [];
   let showingWinnersOnly = false;
-  let currentView = 'table'; // 'table', 'gallery', 'settings'
+  let currentView = 'table'; 
 
   function checkLogin() {
-    const pin = document.getElementById('pinInput').value;
-    if (pin === ADMIN_PIN) {
-      sessionStorage.setItem('adminAuth', '1');
-      showDashboard();
-    } else {
-      document.getElementById('loginErr').innerHTML = '<div class="err-banner">Incorrect Master PIN. Access Denied.</div>';
-      document.getElementById('pinInput').value = '';
-    }
+    if (document.getElementById('pinInput').value === ADMIN_PIN) { sessionStorage.setItem('adminAuth', '1'); showDashboard(); } 
+    else { document.getElementById('loginErr').innerHTML = '<div class="err-banner">Incorrect Master PIN. Access Denied.</div>'; document.getElementById('pinInput').value = ''; }
   }
+  document.getElementById('pinInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkLogin(); });
+  if (sessionStorage.getItem('adminAuth') === '1') { showDashboard(); }
 
-  document.getElementById('pinInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') checkLogin();
-  });
+  function showDashboard() { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block'; document.getElementById('statsBar').style.display = 'flex'; fetchData(); }
 
-  if (sessionStorage.getItem('adminAuth') === '1') {
-    showDashboard();
-  }
-
-  function showDashboard() {
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('dashboardView').style.display = 'block';
-    document.getElementById('statsBar').style.display = 'flex';
-    fetchData();
-  }
-
-  // --- VIEW TOGGLING LOGIC ---
   function hideAllViews() {
-    document.getElementById('tableContainer').style.display = 'none';
-    document.getElementById('galleryContainer').style.display = 'none';
-    document.getElementById('settingsContainer').style.display = 'none';
-    
-    document.getElementById('galleryToggleBtn').classList.replace('btn-primary', 'btn-ghost');
-    document.getElementById('galleryToggleBtn').textContent = '🖼️ Manage Photos';
-    document.getElementById('settingsToggleBtn').classList.replace('btn-primary', 'btn-ghost');
-    document.getElementById('settingsToggleBtn').textContent = '⚙️ Event Settings';
-    
-    document.getElementById('winnerToggleBtn').style.display = 'none';
-    document.getElementById('resetWinnersBtn').style.display = 'none';
-    document.getElementById('exportBtn').style.display = 'none';
-    document.querySelector('.search-box').style.opacity = '0';
-    document.querySelector('.search-box').style.pointerEvents = 'none';
+    document.getElementById('tableContainer').style.display = 'none'; document.getElementById('galleryContainer').style.display = 'none'; document.getElementById('settingsContainer').style.display = 'none';
+    document.getElementById('galleryToggleBtn').classList.replace('btn-primary', 'btn-ghost'); document.getElementById('galleryToggleBtn').textContent = '🖼️ Manage Photos';
+    document.getElementById('settingsToggleBtn').classList.replace('btn-primary', 'btn-ghost'); document.getElementById('settingsToggleBtn').textContent = '⚙️ Ticket Settings';
+    document.getElementById('winnerToggleBtn').style.display = 'none'; document.getElementById('resetWinnersBtn').style.display = 'none'; document.getElementById('exportBtn').style.display = 'none'; document.querySelector('.search-box').style.display = 'none';
   }
 
   function toggleGalleryView() {
-    if (currentView === 'gallery') {
-      currentView = 'table';
-      showTableView();
-    } else {
-      currentView = 'gallery';
-      hideAllViews();
-      document.getElementById('galleryContainer').style.display = 'block';
-      const btn = document.getElementById('galleryToggleBtn');
-      btn.classList.replace('btn-ghost', 'btn-primary');
-      btn.textContent = '← Back to Guest List';
-      fetchGallery();
-    }
+    if (currentView === 'gallery') { currentView = 'table'; showTableView(); } 
+    else { currentView = 'gallery'; hideAllViews(); document.getElementById('galleryContainer').style.display = 'block'; document.getElementById('galleryToggleBtn').classList.replace('btn-ghost', 'btn-primary'); document.getElementById('galleryToggleBtn').textContent = '← Back to List'; fetchGallery(); }
   }
 
   function toggleSettingsView() {
-    if (currentView === 'settings') {
-      currentView = 'table';
-      showTableView();
-    } else {
-      currentView = 'settings';
-      hideAllViews();
-      document.getElementById('settingsContainer').style.display = 'block';
-      const btn = document.getElementById('settingsToggleBtn');
-      btn.classList.replace('btn-ghost', 'btn-primary');
-      btn.textContent = '← Back to Guest List';
-      fetchEventSettings();
-    }
+    if (currentView === 'settings') { currentView = 'table'; showTableView(); } 
+    else { currentView = 'settings'; hideAllViews(); document.getElementById('settingsContainer').style.display = 'block'; document.getElementById('settingsToggleBtn').classList.replace('btn-ghost', 'btn-primary'); document.getElementById('settingsToggleBtn').textContent = '← Back to List'; fetchEventSettings(); }
   }
 
   function showTableView() {
-    hideAllViews();
-    document.getElementById('tableContainer').style.display = 'block';
-    document.getElementById('winnerToggleBtn').style.display = 'inline-block';
-    document.getElementById('exportBtn').style.display = 'inline-block';
-    document.querySelector('.search-box').style.opacity = '1';
-    document.querySelector('.search-box').style.pointerEvents = 'auto';
-    
-    if (showingWinnersOnly) document.getElementById('resetWinnersBtn').style.display = 'inline-block';
-    fetchData();
+    hideAllViews(); document.getElementById('tableContainer').style.display = 'block'; document.getElementById('winnerToggleBtn').style.display = 'inline-block'; document.getElementById('exportBtn').style.display = 'inline-block'; document.querySelector('.search-box').style.display = 'block';
+    if (showingWinnersOnly) document.getElementById('resetWinnersBtn').style.display = 'inline-block'; fetchData();
   }
 
-
   // ==========================================
-  // EVENT SETTINGS LOGIC (NEW)
+  // EVENT SETTINGS (OPEN/CLOSE REGISTRATION)
   // ==========================================
   async function fetchEventSettings() {
     try {
       const { data, error } = await db.from('event_settings').select('*').eq('id', 1).single();
-      if (error) {
-        if (error.code === 'PGRST116') {
-          alert("Settings table exists, but no row with ID=1 found. Please create one in Supabase.");
-        } else { throw error; }
-      }
-      
-      if (data) {
-        document.getElementById('set_date').value = data.event_date || '';
-        document.getElementById('set_time').value = data.door_time || '';
-        document.getElementById('set_venue').value = data.venue_name || '';
-        document.getElementById('set_location').value = data.venue_location || '';
-        document.getElementById('set_status').value = data.registration_open === false ? "false" : "true";
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load event settings.");
-    }
+      if (error) throw error;
+      if (data) { document.getElementById('set_status').value = data.registration_open === false ? "false" : "true"; }
+    } catch (err) { alert("Failed to load settings. Make sure you created row id:1 in the event_settings table."); }
   }
 
   async function saveEventSettings() {
     const btn = document.getElementById('saveSettingsBtn');
-    btn.textContent = "Saving...";
-    btn.disabled = true;
-
-    const payload = {
-      event_date: document.getElementById('set_date').value,
-      door_time: document.getElementById('set_time').value,
-      venue_name: document.getElementById('set_venue').value,
-      venue_location: document.getElementById('set_location').value,
-      registration_open: document.getElementById('set_status').value === "true"
-    };
-
+    btn.textContent = "Saving..."; btn.disabled = true;
     try {
-      const { error } = await db.from('event_settings').update(payload).eq('id', 1);
+      const { error } = await db.from('event_settings').update({ registration_open: document.getElementById('set_status').value === "true" }).eq('id', 1);
       if (error) throw error;
-      
-      btn.textContent = "✓ Settings Saved & Site Updated";
-      setTimeout(() => {
-        btn.textContent = "Save Changes to Live Site";
-        btn.disabled = false;
-      }, 3000);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save settings. Check permissions.");
-      btn.textContent = "Save Changes to Live Site";
-      btn.disabled = false;
-    }
+      btn.textContent = "✓ Portal Updated!";
+      setTimeout(() => { btn.textContent = "Update Live Site"; btn.disabled = false; }, 3000);
+    } catch (err) { alert("Failed to save."); btn.textContent = "Update Live Site"; btn.disabled = false; }
   }
 
-  // ==========================================
-  // GALLERY MANAGEMENT LOGIC
-  // ==========================================
+  // Gallery Logic
   async function fetchGallery() {
-    document.getElementById('photoGrid').innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">Loading photos...</div>';
-    
+    document.getElementById('photoGrid').innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">Loading...</div>';
     try {
       const { data, error } = await db.from('gallery').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      
-      const grid = document.getElementById('photoGrid');
-      grid.innerHTML = '';
-      
-      if (data.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">No photos uploaded yet.</div>';
-        return;
-      }
-
+      const grid = document.getElementById('photoGrid'); grid.innerHTML = '';
+      if (data.length === 0) { grid.innerHTML = '<div style="color:var(--text-dim); grid-column: 1 / -1; text-align: center;">No photos yet.</div>'; return; }
       data.forEach(photo => {
         const time = new Date(photo.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const div = document.createElement('div');
-        div.className = 'photo-card';
-        div.innerHTML = `
-          <img src="${photo.image_url}" loading="lazy">
-          <div class="name">${escapeHtml(photo.guest_name)}</div>
-          <div class="time">${time}</div>
-          <button class="btn btn-danger btn-small" style="width: 100%;" onclick="deletePhoto('${photo.id}', '${photo.image_url}')">Trash Photo</button>
-        `;
+        const div = document.createElement('div'); div.className = 'photo-card';
+        div.innerHTML = `<img src="${photo.image_url}" loading="lazy"><div class="name">${escapeHtml(photo.guest_name)}</div><div class="time">${time}</div><button class="btn btn-danger btn-small" style="width: 100%;" onclick="deletePhoto('${photo.id}', '${photo.image_url}')">Trash Photo</button>`;
         grid.appendChild(div);
       });
     } catch (err) { alert("Could not load photos."); }
   }
 
   async function deletePhoto(id, imageUrl) {
-    if (!confirm("Are you sure? This will instantly remove the photo from the projector screen and delete the file permanently.")) return;
-
+    if (!confirm("Delete this photo permanently?")) return;
     try {
-      const urlParts = imageUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const { error: storageErr } = await db.storage.from('memory-wall').remove([fileName]);
-      if (storageErr) console.warn("Notice: File might already be gone from storage.", storageErr);
-
-      const { error: dbErr } = await db.from('gallery').delete().eq('id', id);
-      if (dbErr) throw dbErr;
+      const urlParts = imageUrl.split('/'); const fileName = urlParts[urlParts.length - 1];
+      await db.storage.from('memory-wall').remove([fileName]);
+      const { error } = await db.from('gallery').delete().eq('id', id);
+      if (error) throw error;
       fetchGallery();
-    } catch (err) { alert("Failed to delete photo."); }
+    } catch (err) { alert("Failed to delete."); }
   }
 
-
-  // ==========================================
-  // GUEST LIST (TABLE) LOGIC
-  // ==========================================
+  // Table Logic
   async function fetchData() {
-    if (currentView === 'gallery') { fetchGallery(); return; }
-    if (currentView === 'settings') { fetchEventSettings(); return; }
-
-    document.getElementById('tableContainer').style.display = 'none';
-    document.getElementById('loader').style.display = 'block';
-
+    if (currentView === 'gallery') { fetchGallery(); return; } if (currentView === 'settings') { fetchEventSettings(); return; }
+    document.getElementById('tableContainer').style.display = 'none'; document.getElementById('loader').style.display = 'block';
     try {
       const { data, error } = await db.from('registrations').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      
-      globalData = data;
-      filterTable(); 
-      updateStats();
-    } catch (err) {
-      alert("Failed to sync with registry. Check connection.");
-    } finally {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('tableContainer').style.display = 'block';
-    }
+      if (error) throw error; globalData = data; filterTable(); updateStats();
+    } catch (err) { alert("Failed to sync."); } finally { document.getElementById('loader').style.display = 'none'; document.getElementById('tableContainer').style.display = 'block'; }
   }
 
   function renderTable(dataArray) {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-
-    if (dataArray.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding: 3rem;">No attendees found matching your criteria.</td></tr>';
-      return;
-    }
-
+    const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+    if (dataArray.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding: 3rem;">No attendees found matching your criteria.</td></tr>'; return; }
     dataArray.forEach(a => {
-      const photo = a.photo_url || 'https://via.placeholder.com/150/0a0a0a/d4af37?text=?';
-      const statusClass = a.checked_in ? 'in' : 'out';
-      const statusText = a.checked_in ? 'In Venue' : 'Pending';
-      const toggleText = a.checked_in ? 'Undo Check-In' : 'Manual Check-In';
-      const prizeHtml = a.prize_won ? `<br><div class="prize-badge">🏆 ${a.prize_won}</div>` : '';
-      
+      const photo = a.photo_url || 'https://via.placeholder.com/150/0a0a0a/d4af37?text=?'; const statusClass = a.checked_in ? 'in' : 'out'; const statusText = a.checked_in ? 'In Venue' : 'Pending'; const toggleText = a.checked_in ? 'Undo Check-In' : 'Manual Check-In'; const prizeHtml = a.prize_won ? `<br><div class="prize-badge">🏆 ${a.prize_won}</div>` : '';
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div style="display:flex; align-items:center; gap:1.2rem;">
-            <div class="td-photo"><img src="${photo}" loading="lazy"></div>
-            <div>
-              <div class="td-name">${escapeHtml(a.full_name)}</div>
-              <div class="td-email">${escapeHtml(a.email)}</div>
-            </div>
-          </div>
-        </td>
-        <td>
-          <div class="td-ticket">${a.ticket_number}</div>
-          <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--text-mute); margin-top:0.3rem;">${a.id_type}</div>
-        </td>
-        <td>
-          <div class="td-phone">${escapeHtml(a.phone)}</div>
-          <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.3rem;">${escapeHtml(a.city)}</div>
-        </td>
-        <td>
-          <div class="status ${statusClass}"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor;"></span> ${statusText}</div>
-          ${prizeHtml}
-        </td>
-        <td>
-          <div class="actions">
-            <button class="btn btn-ghost btn-small" onclick="toggleStatus('${a.id}', ${a.checked_in})">${toggleText}</button>
-            <button class="btn btn-danger btn-small" onclick="deleteRecord('${a.id}', '${escapeHtml(a.full_name)}')">Delete</button>
-          </div>
-        </td>
-      `;
+      tr.innerHTML = `<td><div style="display:flex; align-items:center; gap:1.2rem;"><div class="td-photo"><img src="${photo}" loading="lazy"></div><div><div class="td-name">${escapeHtml(a.full_name)}</div><div class="td-email">${escapeHtml(a.email)}</div></div></div></td><td><div class="td-ticket">${a.ticket_number}</div><div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--text-mute); margin-top:0.3rem;">${a.id_type}</div></td><td><div class="td-phone">${escapeHtml(a.phone)}</div><div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.3rem;">${escapeHtml(a.city)}</div></td><td><div class="status ${statusClass}"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor;"></span> ${statusText}</div>${prizeHtml}</td><td><div class="actions"><button class="btn btn-ghost btn-small" onclick="toggleStatus('${a.id}', ${a.checked_in})">${toggleText}</button><button class="btn btn-danger btn-small" onclick="deleteRecord('${a.id}', '${escapeHtml(a.full_name)}')">Delete</button></div></td>`;
       tbody.appendChild(tr);
     });
   }
 
   function updateStats() {
-    const total = globalData.length;
-    const checkedIn = globalData.filter(a => a.checked_in).length;
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('checkedCount').textContent = checkedIn;
-    const percentage = total > 0 ? (checkedIn / total) * 100 : 0;
-    document.getElementById('venueProgress').style.width = `${percentage}%`;
+    const total = globalData.length; const checkedIn = globalData.filter(a => a.checked_in).length; document.getElementById('totalCount').textContent = total; document.getElementById('checkedCount').textContent = checkedIn;
+    document.getElementById('venueProgress').style.width = `${total > 0 ? (checkedIn / total) * 100 : 0}%`;
   }
 
-  function toggleWinners() {
-    showingWinnersOnly = !showingWinnersOnly;
-    const btn = document.getElementById('winnerToggleBtn');
-    const resetBtn = document.getElementById('resetWinnersBtn');
-    
-    if (showingWinnersOnly) {
-      btn.classList.replace('btn-secondary', 'btn-primary');
-      btn.textContent = '← View All Guests';
-      resetBtn.style.display = 'inline-block';
-    } else {
-      btn.classList.replace('btn-primary', 'btn-secondary');
-      btn.textContent = '🏆 Show Winners';
-      resetBtn.style.display = 'none';
-    }
-    filterTable();
-  }
-
-  function filterTable() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    let filtered = globalData.filter(a => {
-      const nameMatch = a.full_name ? String(a.full_name).toLowerCase().includes(query) : false;
-      const ticketMatch = a.ticket_number ? String(a.ticket_number).toLowerCase().includes(query) : false;
-      const emailMatch = a.email ? String(a.email).toLowerCase().includes(query) : false;
-      const phoneMatch = a.phone ? String(a.phone).toLowerCase().includes(query) : false;
-      return nameMatch || ticketMatch || emailMatch || phoneMatch;
-    });
-
-    if (showingWinnersOnly) filtered = filtered.filter(a => a.prize_won);
-    renderTable(filtered);
-  }
-
-  async function toggleStatus(recordId, currentStatus) {
-    const newStatus = !currentStatus;
-    const confirmMsg = newStatus ? "Manually check this person in?" : "Undo check-in?";
-    if (!confirm(confirmMsg)) return;
-
-    try {
-      const { error } = await db.from('registrations').update({ checked_in: newStatus, checked_in_at: newStatus ? new Date().toISOString() : null }).eq('id', recordId);
-      if (error) throw error;
-      fetchData(); 
-    } catch (err) { alert("Failed to update status."); }
-  }
-
-  async function deleteRecord(recordId, name) {
-    if (!confirm(`CRITICAL WARNING:\n\nAre you sure you want to permanently delete the registration for ${name}?`)) return;
-    if (!confirm("Confirm Delete?")) return;
-
-    try {
-      const { error } = await db.from('registrations').delete().eq('id', recordId);
-      if (error) throw error;
-      fetchData(); 
-    } catch (err) { alert("Failed to delete record."); }
-  }
-
-  async function resetAllWinners() {
-    if (!confirm("Are you sure you want to clear the 'Prize Won' data from the database?")) return;
-    try {
-      const winners = globalData.filter(a => a.prize_won);
-      if (winners.length === 0) return alert("No winners to reset.");
-      document.getElementById('resetWinnersBtn').textContent = "Clearing...";
-      for (const winner of winners) {
-        await db.from('registrations').update({ prize_won: null }).eq('id', winner.id);
-      }
-      alert("Winners data cleared successfully.");
-      document.getElementById('resetWinnersBtn').textContent = "↻ Reset Winners";
-      fetchData();
-    } catch (err) {
-      alert("Failed to reset winners.");
-      document.getElementById('resetWinnersBtn').textContent = "↻ Reset Winners";
-    }
-  }
-
-  function exportCSV() {
-    if (globalData.length === 0) return alert("No data to export.");
-    const headers = ['Ticket Number', 'Full Name', 'Email', 'Phone', 'DOB', 'City', 'ID Type', 'Checked In Status', 'Prize Won', 'Registration Date'];
-    const rows = globalData.map(a => [
-      a.ticket_number, `"${a.full_name}"`, a.email, `"${a.phone}"`, a.dob, `"${a.city}"`, a.id_type, a.checked_in ? 'YES' : 'NO', a.prize_won || 'None', new Date(a.created_at).toLocaleString()
-    ]);
-    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `LEAMS_GuestList_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
+  function toggleWinners() { showingWinnersOnly = !showingWinnersOnly; const btn = document.getElementById('winnerToggleBtn'); const resetBtn = document.getElementById('resetWinnersBtn'); if (showingWinnersOnly) { btn.classList.replace('btn-secondary', 'btn-primary'); btn.textContent = '← View All Guests'; resetBtn.style.display = 'inline-block'; } else { btn.classList.replace('btn-primary', 'btn-secondary'); btn.textContent = '🏆 Show Winners'; resetBtn.style.display = 'none'; } filterTable(); }
+  function filterTable() { const query = document.getElementById('searchInput').value.toLowerCase(); let filtered = globalData.filter(a => (a.full_name && a.full_name.toLowerCase().includes(query)) || (a.ticket_number && a.ticket_number.toLowerCase().includes(query)) || (a.email && a.email.toLowerCase().includes(query)) || (a.phone && a.phone.toLowerCase().includes(query))); if (showingWinnersOnly) filtered = filtered.filter(a => a.prize_won); renderTable(filtered); }
+  async function toggleStatus(id, stat) { if(!confirm(stat ? "Undo check-in?" : "Manually check in?")) return; await db.from('registrations').update({ checked_in: !stat, checked_in_at: !stat ? new Date().toISOString() : null }).eq('id', id); fetchData(); }
+  async function deleteRecord(id, name) { if(!confirm("Permanently delete "+name+"?")) return; await db.from('registrations').delete().eq('id', id); fetchData(); }
+  async function resetAllWinners() { if(!confirm("Clear all prize data?")) return; const w = globalData.filter(a=>a.prize_won); for(let x of w) await db.from('registrations').update({prize_won:null}).eq('id',x.id); fetchData(); }
+  function exportCSV() { if (globalData.length === 0) return; const h = ['Ticket','Name','Email','Phone','DOB','City','ID Type','Checked In','Prize','Date']; const r = globalData.map(a => [a.ticket_number, `"${a.full_name}"`, a.email, `"${a.phone}"`, a.dob, `"${a.city}"`, a.id_type, a.checked_in?'YES':'NO', a.prize_won||'None', new Date(a.created_at).toLocaleString()]); const c = [h.join(','), ...r.map(e => e.join(','))].join('\n'); const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([c], {type:'text/csv'})); l.download = "LEAMS_GuestList.csv"; l.click(); }
   function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 </script>
 
